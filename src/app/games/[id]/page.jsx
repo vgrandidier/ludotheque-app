@@ -3,6 +3,7 @@ import Game from "@/models/Game";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+
 export default async function GameDetailsPage({ params }) {
   // 1. On "attend" la promesse des paramètres (Nouveauté Next.js 15)
   const resolvedParams = await params;
@@ -28,11 +29,17 @@ export default async function GameDetailsPage({ params }) {
   return (
     <div className="max-w-6xl mx-auto p-6">
       
-      {/* Bouton retour */}
-      <div className="mb-6">
+{/* Navigation : Retour et Modification */}
+      <div className="flex justify-between items-center mb-6">
         <Link href="/" className="text-blue-600 hover:underline flex items-center gap-2 font-medium">
           ← Retour à la ludothèque
         </Link>
+        <Link 
+            href={`/games/${game._id.toString()}/edit`} 
+            className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-md hover:bg-blue-100 transition-colors font-medium flex items-center gap-2 shadow-sm"
+          >
+            <span className="material-icons text-sm">edit</span> Modifier
+          </Link>
       </div>
 
       {/* En-tête du jeu */}
@@ -48,10 +55,10 @@ export default async function GameDetailsPage({ params }) {
             </span>
           </div>
           <h1 className="text-4xl font-bold text-gray-800">{game.title}</h1>
-          <div className="flex gap-4 mt-4 text-gray-600 font-medium">
-            <span>👥 {game.players?.min} - {game.players?.max} joueurs</span>
-            <span>⏳ {game.duration} min</span>
-            <span>🎂 {game.minAge}+ ans</span>
+          <div className="flex gap-4 mt-4 text-gray-600 font-medium items-center">
+            <span className="flex items-center gap-1"><span className="material-icons text-blue-400 mb-1">face</span> {game.minAge}+ ans</span>
+            <span className="flex items-center gap-1"><span className="material-icons text-blue-400 mb-1">group</span> {game.players?.min} - {game.players?.max} joueurs</span>
+            <span className="flex items-center gap-1"><span className="material-icons text-blue-400 mb-1">schedule</span> {game.duration} min</span>
           </div>
         </div>
 
@@ -66,8 +73,27 @@ export default async function GameDetailsPage({ params }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Colonne de gauche : Images et Vidéo */}
+{/* Colonne de gauche : Récompenses, Images et Vidéo */}
         <div className="lg:col-span-1 space-y-6">
+          
+          {/* Récompenses (Déplacé tout en haut) */}
+          {((game.asDor?.status && game.asDor.status !== 'aucun') || (game.spielDesJahres?.status && game.spielDesJahres.status !== 'aucun')) && (
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+              <h3 className="font-semibold text-yellow-800 border-b border-yellow-200 pb-2 mb-4 flex items-center gap-2">
+                <span className="material-icons">emoji_events</span> Récompenses
+              </h3>
+              <ul className="space-y-2 text-yellow-900 text-sm">
+                {game.asDor?.status && game.asDor.status !== 'aucun' && (
+                  <li className="flex items-center gap-2"><span className="material-icons text-yellow-600 text-sm">star</span> As d'Or {game.asDor.year && `(${game.asDor.year})`} : <strong className="capitalize">{game.asDor.status}</strong></li>
+                )}
+                {game.spielDesJahres?.status && game.spielDesJahres.status !== 'aucun' && (
+                  <li className="flex items-center gap-2"><span className="material-icons text-yellow-600 text-sm">star</span> Spiel des Jahres {game.spielDesJahres.year && `(${game.spielDesJahres.year})`} : <strong className="capitalize">{game.spielDesJahres.status}</strong></li>
+                )}
+              </ul>
+            </div>
+          )}
+
+          {/* Image de la boîte */}
           {game.boxImage && (
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
               <h3 className="font-semibold text-gray-800 border-b pb-2 mb-4">Boîte du jeu</h3>
@@ -75,6 +101,7 @@ export default async function GameDetailsPage({ params }) {
             </div>
           )}
 
+          {/* Image du plateau */}
           {game.boardImage && (
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
               <h3 className="font-semibold text-gray-800 border-b pb-2 mb-4">Aperçu du plateau</h3>
@@ -82,31 +109,25 @@ export default async function GameDetailsPage({ params }) {
             </div>
           )}
 
+          {/* Vidéo YouTube intégrée */}
           {game.youtubeUrl && (
-            <a 
-              href={game.youtubeUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="block w-full bg-red-50 text-red-600 text-center py-3 rounded-lg border border-red-200 hover:bg-red-100 transition-colors font-medium shadow-sm"
-            >
-              ▶️ Voir la vidéo YouTube
-            </a>
-          )}
-
-          {/* Récompenses */}
-          {(game.asDor?.isNominated || game.spielDesJahres?.isNominated) && (
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-              <h3 className="font-semibold text-yellow-800 border-b border-yellow-200 pb-2 mb-4">🏆 Récompenses</h3>
-              <ul className="space-y-2 text-yellow-900 text-sm">
-                {game.asDor?.isNominated && (
-                  <li>✨ As d'Or {game.asDor.year && `(${game.asDor.year})`}</li>
-                )}
-                {game.spielDesJahres?.isNominated && (
-                  <li>✨ Spiel des Jahres {game.spielDesJahres.year && `(${game.spielDesJahres.year})`}</li>
-                )}
-              </ul>
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="font-semibold text-gray-800 border-b pb-2 mb-4">Vidéo explicative</h3>
+              <iframe
+                src={
+                  game.youtubeUrl.includes("embed/") ? game.youtubeUrl
+                  : game.youtubeUrl.includes("youtu.be/") ? `https://www.youtube.com/embed/${game.youtubeUrl.split("youtu.be/")[1]?.split("?")[0]}`
+                  : game.youtubeUrl.includes("watch?v=") ? `https://www.youtube.com/embed/${game.youtubeUrl.split("watch?v=")[1]?.split("&")[0]}`
+                  : game.youtubeUrl
+                }
+                title={`Vidéo de ${game.title}`}
+                className="w-full aspect-video rounded-md shadow-sm"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
             </div>
           )}
+
         </div>
 
         {/* Colonne de droite : Textes, Mécaniques et Vendeurs */}
@@ -154,32 +175,52 @@ export default async function GameDetailsPage({ params }) {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Où l'acheter ?</h3>
               <div className="space-y-3">
-                {game.sellers.map((seller, index) => (
-                  <div 
-                    key={index} 
-                    className={`flex items-center justify-between p-4 rounded-md border ${
-                      seller.isLowest ? 'border-green-400 bg-green-50' : 'border-gray-200'
-                    }`}
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-800">{seller.name}</p>
-                      {seller.isLowest && <span className="text-xs text-green-600 font-bold uppercase tracking-wider">Meilleur prix</span>}
+                {[...game.sellers]
+                  .sort((a, b) => (a.price || 0) - (b.price || 0))
+                  .map((seller, index) => (
+                    <div 
+                      key={index} 
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-md border gap-4 ${
+                        seller.isLowest ? 'border-green-400 bg-green-50' : 'border-gray-200'
+                      }`}
+                    >
+                      <div>
+                        {/* Ligne avec le nom et le badge du type */}
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-semibold text-gray-800">{seller.name}</p>
+                          
+                          {/* Affichage du badge selon le type */}
+                          {seller.type && seller.type.toLowerCase().includes('marketplace') ? (
+                            <span className="text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded-sm border border-gray-200 flex items-center gap-1 w-max">
+                              <span className="material-icons text-[14px]">shopping_cart</span> Marketplace
+                            </span>
+                          ) : seller.type ? (
+                            <span className="text-[10px] font-bold uppercase tracking-wide bg-purple-50 text-purple-700 px-2 py-0.5 rounded-sm border border-purple-200 flex items-center gap-1 w-max">
+                              <span className="material-icons text-[14px]">casino</span> Boutique spécialisée
+                            </span>
+                          ) : null}
+                        </div>
+
+                        {/* Meilleur prix */}
+                        {seller.isLowest && <span className="text-xs text-green-600 font-bold uppercase tracking-wider block">Meilleur prix</span>}
+                      </div>
+                      
+                      {/* Prix et Bouton */}
+                      <div className="flex items-center gap-4">
+                        <span className="text-xl font-bold text-gray-800 whitespace-nowrap">{seller.price} €</span>
+                        {seller.url && (
+                          <a 
+                            href={seller.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm font-medium transition-colors whitespace-nowrap"
+                          >
+                            Voir l'offre
+                          </a>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-xl font-bold text-gray-800">{seller.price} €</span>
-                      {seller.url && (
-                        <a 
-                          href={seller.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm font-medium transition-colors"
-                        >
-                          Voir l'offre
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}

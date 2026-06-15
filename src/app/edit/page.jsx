@@ -133,8 +133,9 @@ export default function EditGamePage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">Ajouter un jeu à la ludothèque</h1>
-
+<div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Ajouter un nouveau jeu</h1>
+      </div>  
       {error && (
         <div className="bg-red-100 text-red-700 p-4 rounded-md mb-6">
           {error}
@@ -340,63 +341,60 @@ export default function EditGamePage() {
           <div className="space-y-4 p-4 border border-gray-200 rounded-md h-min">
             <h3 className="font-medium text-gray-800 border-b pb-2">Nominations & Prix</h3>
             
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="isNominated"
-                  checked={formData.asDor.isNominated}
-                  onChange={(e) => handleNestedChange(e, 'asDor')}
-                  className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4"
-                />
-                <span className="text-sm font-medium text-gray-700">As d'Or</span>
-              </label>
-              {formData.asDor.isNominated && (
-                <input
-                  type="number"
-                  name="year"
-                  placeholder="Année"
-                  value={formData.asDor.year}
-                  onChange={(e) => handleNestedChange(e, 'asDor')}
-                  className="border border-gray-300 rounded-md p-1 text-sm w-24"
-                />
+            {/* As d'Or */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <span className="text-sm font-medium w-32">As d'Or</span>
+              <select 
+                name="status" 
+                value={formData.asDor?.status || "aucun"} 
+                onChange={(e) => handleNestedChange(e, 'asDor')} 
+                className="border rounded p-1.5 text-sm flex-grow"
+              >
+                <option value="aucun">Aucun</option>
+                <option value="recommandé">Recommandé</option>
+                <option value="nominé">Nominé</option>
+                <option value="vainqueur">Vainqueur</option>
+              </select>
+              {formData.asDor?.status && formData.asDor.status !== "aucun" && (
+                <input type="number" name="year" placeholder="Année" value={formData.asDor?.year || ""} onChange={(e) => handleNestedChange(e, 'asDor')} className="border rounded p-1.5 text-sm w-24" />
               )}
             </div>
 
-            <div className="flex items-center gap-4 mt-3">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="isNominated"
-                  checked={formData.spielDesJahres.isNominated}
-                  onChange={(e) => handleNestedChange(e, 'spielDesJahres')}
-                  className="rounded text-blue-600 focus:ring-blue-500 h-4 w-4"
-                />
-                <span className="text-sm font-medium text-gray-700">Spiel des Jahres</span>
-              </label>
-              {formData.spielDesJahres.isNominated && (
-                <input
-                  type="number"
-                  name="year"
-                  placeholder="Année"
-                  value={formData.spielDesJahres.year}
-                  onChange={(e) => handleNestedChange(e, 'spielDesJahres')}
-                  className="border border-gray-300 rounded-md p-1 text-sm w-24"
-                />
+            {/* Spiel des Jahres */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
+              <span className="text-sm font-medium w-32">Spiel d. Jahres</span>
+              <select 
+                name="status" 
+                value={formData.spielDesJahres?.status || "aucun"} 
+                onChange={(e) => handleNestedChange(e, 'spielDesJahres')} 
+                className="border rounded p-1.5 text-sm flex-grow"
+              >
+                <option value="aucun">Aucun</option>
+                <option value="recommandé">Recommandé</option>
+                <option value="nominé">Nominé</option>
+                <option value="vainqueur">Vainqueur</option>
+              </select>
+              {formData.spielDesJahres?.status && formData.spielDesJahres.status !== "aucun" && (
+                <input type="number" name="year" placeholder="Année" value={formData.spielDesJahres?.year || ""} onChange={(e) => handleNestedChange(e, 'spielDesJahres')} className="border rounded p-1.5 text-sm w-24" />
               )}
             </div>
           </div>
 
         </div>
 
-        {/* --- SECTION 7 : Bouton de soumission --- */}
-        <div className="flex justify-end pt-6 border-t border-gray-200">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`px-6 py-3 rounded-md text-white font-medium ${
-              isSubmitting ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-            } transition-colors`}
+{/* Boutons de validation en bas */}
+        <div className="flex justify-end items-center gap-4 pt-6 border-t border-gray-200">
+          <button 
+            type="button" 
+            onClick={() => router.push('/')} 
+            className="px-4 py-2 text-gray-600 hover:underline"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className={`px-6 py-3 rounded-md text-white font-medium ${isSubmitting ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"} transition-colors`}
           >
             {isSubmitting ? "Enregistrement..." : "Sauvegarder la fiche"}
           </button>

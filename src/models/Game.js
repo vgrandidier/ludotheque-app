@@ -44,14 +44,14 @@ const GameSchema = new mongoose.Schema({
   
   // Champ 16 : Nominations / Prix Spiel des Jahres
   spielDesJahres: {
-    isNominated: { type: Boolean, default: false },
-    year: { type: Number }
+    status: { type: String, default: 'aucun' },
+    year: Number
   },
   
   // Champ 17 : Nominations / Prix As d'Or
   asDor: {
-    isNominated: { type: Boolean, default: false },
-    year: { type: Number }
+    status: { type: String, default: 'aucun' }, // 'aucun', 'recommandé', 'nominé', 'vainqueur'
+    year: Number
   },
   
   // Champ 18 : Catégorisation dans la ludothèque
