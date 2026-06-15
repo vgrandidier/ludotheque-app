@@ -67,20 +67,32 @@ const GameSchema = new mongoose.Schema({
 
 // --- AUTOMATISATION DES PRIX (Pre-save Hook) ---
 // Avant chaque sauvegarde (création ou modification), ce code s'exécute
-GameSchema.pre('save', function(next) {
+GameSchema.pre('save', function() {
   if (this.sellers && this.sellers.length > 0) {
-    // 1. Trouver le prix le plus bas parmi les vendeurs
-    const minPrice = Math.min(...this.sellers.map(s => s.price));
-    this.lowestPrice = minPrice;
+    
+    // 1. On récupère les prix, en filtrant les prix vides ou à zéro
+    const validPrices = this.sellers
+      .map(s => s.price)
+      .filter(p => p != null && p > 0);
 
-    // 2. Mettre à jour le flag isLowest pour chaque vendeur
-    this.sellers.forEach(seller => {
-      seller.isLowest = (seller.price === minPrice);
-    });
+    // 2. S'il y a des prix valides, on trouve le plus bas
+    if (validPrices.length > 0) {
+      const minPrice = Math.min(...validPrices);
+      this.lowestPrice = minPrice;
+
+      // 3. Mettre à jour le flag isLowest pour chaque vendeur
+      this.sellers.forEach(seller => {
+        seller.isLowest = (seller.price === minPrice);
+      });
+    } else {
+      this.lowestPrice = 0;
+    }
+
   } else {
     this.lowestPrice = 0;
   }
-  next();
+  
+  // Plus de next() ici, Mongoose gère tout seul !
 });
 
 // Gestion du singleton pour Next.js (Serverless)
