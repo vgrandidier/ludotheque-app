@@ -31,8 +31,11 @@ export default async function GameDetailsPage({ params }) {
       
 {/* Navigation : Retour et Modification */}
       <div className="flex justify-between items-center mb-6">
-        <Link href="/" className="text-blue-600 hover:underline flex items-center gap-2 font-medium">
-          ← Retour à la ludothèque
+        <Link 
+          href={`/#game-${game._id.toString()}`} // <-- ON AJOUTE L'ANCRE ICI
+          className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        >
+          <span className="material-icons text-base">arrow_back</span> Retour à la ludothèque
         </Link>
         <Link 
             href={`/games/${game._id.toString()}/edit`} 
@@ -46,13 +49,16 @@ export default async function GameDetailsPage({ params }) {
       <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="mb-2">
-            <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
-              game.label === 'Coup de coeur' ? 'bg-red-100 text-red-700' :
-              game.label === 'Wishlist' ? 'bg-purple-100 text-purple-700' :
-              'bg-green-100 text-green-700'
+            {game.label && (
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-sm w-max ${
+              game.label === 'Coup de coeur' || game.label === 'Coup de Coeur' ? 'bg-[#FB862C] text-white' :
+              game.label === 'Wishlist' || game.label === 'Whishlist' ? 'bg-[#8ECAE6] text-white' :
+              game.label === 'Dans ma ludothèque' ? 'bg-[#BE95C4] text-white' :
+              'bg-gray-400 text-white'
             }`}>
               {game.label}
             </span>
+          )}
           </div>
           <h1 className="text-4xl font-bold text-gray-800">{game.title}</h1>
           {/* Ligne des statistiques */}

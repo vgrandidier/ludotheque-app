@@ -87,7 +87,11 @@ export default async function HomePage({ searchParams }) {
         /* Grille des cartes de jeux (3 colonnes larges) */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredGames.map((game) => (
-            <div key={game._id.toString()} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+            <div 
+              key={game._id.toString()} 
+              id={`game-${game._id.toString()}`} // <-- ON AJOUTE CET ID UNIQUE
+              className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden flex flex-col ..."
+            >
               
               {/* Image de la boîte */}
               {game.boxImage && (
@@ -101,20 +105,23 @@ export default async function HomePage({ searchParams }) {
                 
                 {/* Section Badges (Labels et Récompenses) */}
                 <div className="mb-3 flex flex-wrap gap-2">
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-sm ${
-                    game.label === 'Coup de coeur' ? 'bg-orange-500 text-white' :
-                    game.label === 'Wishlist' ? 'bg-purple-100 text-purple-700' :
-                    'bg-green-100 text-green-700'
-                  }`}>
-                    {game.label}
-                  </span>
+                  {game.label && (
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-sm ${
+                      game.label === 'Coup de coeur' || game.label === 'Coup de Coeur' ? 'bg-[#FB862C] text-white' :
+                      game.label === 'Wishlist' || game.label === 'Whishlist' ? 'bg-[#8ECAE6] text-white' :
+                      game.label === 'Dans ma ludothèque' ? 'bg-[#BE95C4] text-white' :
+                      'bg-gray-400 text-white' // Couleur par défaut au cas où
+                    }`}>
+                      {game.label}
+                    </span>
+                  )}
                   {game.asDor?.status && game.asDor.status !== 'aucun' && (
                     <span className="text-xs font-semibold px-2.5 py-1 rounded-sm border border-yellow-500 text-yellow-700 bg-yellow-50 flex items-center gap-0.5">
                       As d'Or
                     </span>
                   )}
                   {game.spielDesJahres?.status && game.spielDesJahres.status !== 'aucun' && (
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-sm border border-blue-500 text-blue-700 bg-blue-50 flex items-center gap-0.5">
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-sm border border-yellow-500 text-yellow-700 bg-yellow-50 flex items-center gap-0.5">
                       Spiel des Jahres
                     </span>
                   )}
