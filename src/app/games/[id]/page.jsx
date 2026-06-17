@@ -55,20 +55,43 @@ export default async function GameDetailsPage({ params }) {
             </span>
           </div>
           <h1 className="text-4xl font-bold text-gray-800">{game.title}</h1>
-          <div className="flex gap-4 mt-4 text-gray-600 font-medium items-center">
-            <span className="flex items-center gap-1"><span className="material-icons text-blue-400 mb-1">face</span> {game.minAge}+ ans</span>
-            <span className="flex items-center gap-1"><span className="material-icons text-blue-400 mb-1">group</span> {game.players?.min} - {game.players?.max} joueurs</span>
-            <span className="flex items-center gap-1"><span className="material-icons text-blue-400 mb-1">schedule</span> {game.duration} min</span>
+          {/* Ligne des statistiques */}
+          <div className="flex flex-wrap items-center gap-y-3 gap-x-6 mt-4 text-gray-600 font-medium">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1"><span className="material-icons text-base text-blue-600">group</span> {game.players?.min} - {game.players?.max} joueurs</span>
+              <span className="flex items-center gap-1"><span className="material-icons text-base text-blue-600">schedule</span> {game.duration} min</span>
+              <span className="flex items-center gap-1"><span className="material-icons text-base text-blue-600">face</span> {game.minAge}+ ans</span>
+            </div>
           </div>
+
         </div>
 
-        {/* Prix le plus bas calculé */}
-        {game.lowestPrice > 0 && (
-          <div className="bg-green-50 border border-green-200 p-4 rounded-md text-center min-w-[150px]">
-            <p className="text-sm text-green-800 mb-1">Meilleur prix</p>
-            <p className="text-3xl font-bold text-green-600">{game.lowestPrice} €</p>
+        {/* Bloc des prix (Aligné à droite) */}
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            
+            {/* Bloc Occasion (Ne s'affiche que si un prix min ou max est renseigné) */}
+            {(game.usedPriceMin || game.usedPriceMax) && (
+              <div className="bg-orange-50 px-4 py-3 rounded-lg border border-orange-200 text-center shadow-sm min-w-[120px]">
+                <p className="text-xs text-orange-600 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
+                  <span className="material-icons text-[14px]">recycling</span> Occasion
+                </p>
+                <p className="text-xl font-bold text-orange-800">
+                  {game.usedPriceMin ? `${game.usedPriceMin}` : '?'} - {game.usedPriceMax ? `${game.usedPriceMax} €` : '? €'}
+                </p>
+              </div>
+            )}
+
+            {/* Bloc Neuf (Ton bloc existant retravaillé pour s'aligner) */}
+            <div className="bg-green-50 px-4 py-3 rounded-lg border border-green-200 text-center shadow-sm min-w-[120px]">
+              <p className="text-xs text-green-600 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
+                <span className="material-icons text-[14px]">storefront</span> Meilleur prix
+              </p>
+              <p className="text-xl font-bold text-green-800">
+                {game.lowestPrice > 0 ? `${game.lowestPrice} €` : '-- €'}
+              </p>
+            </div>
+            
           </div>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

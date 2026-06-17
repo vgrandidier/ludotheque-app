@@ -1,17 +1,35 @@
 import { auth } from "@/auth";
+import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  const isOnEditPage = req.nextUrl.pathname.startsWith("/edit");
+  const { pathname } = req.nextUrl;
 
-  // Si l'utilisateur tente d'accéder à la page d'édition sans être connecté
-  if (isOnEditPage && !isLoggedIn) {
-    // Redirection vers la page de login
-    return Response.redirect(new URL("/login", req.nextUrl));
+  // 1. Protection des pages visuelles (Front-end)
+  const isEditPage = pathname === "/edit" || pathname.endsWith("/edit");
+  
+  if (isEditPage && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/login", req.nextUrl));
   }
+
+  // 2. Protection des actions en base de données (API)
+  const isApiRoute = pathname.startsWith("/api/games");
+  
+  if (isApiRoute && req.method !== "GET" && !isLoggedIn) {
+    return NextResponse.json(
+      { error: "Action non autorisée. Veuillez vous connecter." }, 
+      { status: 401 }
+    );
+  }
+
+  return NextResponse.next();
 });
 
-// Indique à Next.js sur quelles routes le middleware doit s'exécuter
+// 3. Configuration du routeur
 export const config = {
-  matcher: ["/edit/:path*", "/api/games/:path*"],
+  matcher: [
+    "/edit",
+    "/games/:path*/edit",
+    "/api/games/:path*"
+  ],
 };

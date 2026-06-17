@@ -189,7 +189,38 @@ export default function EditGamePage() {
         {/* --- SECTION 4 & 5 : Mécaniques et Vendeurs --- */}
         <div><MechanicsManager mechanics={formData.mechanics} onChange={(newMechanics) => setFormData((prev) => ({ ...prev, mechanics: newMechanics }))} /></div>
         <div><SellerManager sellers={formData.sellers} onChange={(newSellers) => setFormData((prev) => ({ ...prev, sellers: newSellers }))} /></div>
-
+        {/* Encadré : Marché de l'occasion */}
+        <div className="mt-6 bg-orange-50 p-5 rounded-lg border border-orange-200 shadow-sm">
+          <h3 className="text-sm font-bold text-orange-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span className="material-icons text-base">recycling</span> Marché de l'occasion (Estimation)
+          </h3>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <label className="block text-sm text-orange-900 font-medium mb-1">Prix minimum (€)</label>
+              <input 
+                type="number" 
+                step="0.1" 
+                name="usedPriceMin" 
+                value={formData.usedPriceMin || ''} 
+                onChange={handleChange} 
+                className="w-full border border-orange-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" 
+                placeholder="Ex: 15" 
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm text-orange-900 font-medium mb-1">Prix maximum (€)</label>
+              <input 
+                type="number" 
+                step="0.1" 
+                name="usedPriceMax" 
+                value={formData.usedPriceMax || ''} 
+                onChange={handleChange} 
+                className="w-full border border-orange-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none" 
+                placeholder="Ex: 25" 
+              />
+            </div>
+          </div>
+        </div>
         {/* --- SECTION 6 : Médias & Récompenses --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">

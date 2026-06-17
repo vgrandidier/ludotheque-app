@@ -22,8 +22,11 @@ export default async function HomePage({ searchParams }) {
   const awardFilter = resolvedSearchParams?.award || "";
   const mechanicFilter = resolvedSearchParams?.mechanic || "";
 
-  // 1. Récupération de tous les jeux triés par date d'ajout
-  const allGames = await Game.find().sort({ createdAt: -1 }).lean();
+ // 1. Récupération de tous les jeux triés par ordre alphabétique
+  const allGames = await Game.find()
+    .collation({ locale: 'fr', strength: 2 }) // Ignore la casse (majuscules/minuscules) et les accents pour le tri
+    .sort({ title: 1 }) // 1 pour ordre croissant (A-Z), -1 pour décroissant (Z-A)
+    .lean();
 
   // 2. Extraction automatique de toutes les mécaniques uniques existantes en base
   const uniqueMechanics = [
@@ -42,7 +45,12 @@ export default async function HomePage({ searchParams }) {
   }
 
   if (awardFilter) {
-    if (awardFilter === "asDor") {
+    if (awardFilter === "anyAward") {
+      filteredGames = filteredGames.filter(game => 
+        (game.asDor?.status && game.asDor.status !== "aucun") || 
+        (game.spielDesJahres?.status && game.spielDesJahres.status !== "aucun")
+      );
+    } else if (awardFilter === "asDor") {
       filteredGames = filteredGames.filter(game => game.asDor?.status && game.asDor.status !== "aucun");
     } else if (awardFilter === "spiel") {
       filteredGames = filteredGames.filter(game => game.spielDesJahres?.status && game.spielDesJahres.status !== "aucun");
@@ -102,12 +110,12 @@ export default async function HomePage({ searchParams }) {
                   </span>
                   {game.asDor?.status && game.asDor.status !== 'aucun' && (
                     <span className="text-xs font-semibold px-2.5 py-1 rounded-sm border border-yellow-500 text-yellow-700 bg-yellow-50 flex items-center gap-0.5">
-                      <span className="material-icons text-xs">emoji_events</span> As d'Or
+                      As d'Or
                     </span>
                   )}
                   {game.spielDesJahres?.status && game.spielDesJahres.status !== 'aucun' && (
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-sm border border-red-500 text-red-700 bg-red-50 flex items-center gap-0.5">
-                      <span className="material-icons text-xs">emoji_events</span> Spiel d. Jahres
+                    <span className="text-xs font-semibold px-2.5 py-1 rounded-sm border border-blue-500 text-blue-700 bg-blue-50 flex items-center gap-0.5">
+                      Spiel des Jahres
                     </span>
                   )}
                 </div>
@@ -117,19 +125,19 @@ export default async function HomePage({ searchParams }) {
                 {/* Ligne des Caractéristiques avec Material Icons */}
                 <div className="flex justify-between items-center text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100 text-center">
                   <div className="flex flex-col items-center">
-                    <span className="material-icons text-gray-400 mb-1">face</span>
+                    <span className="material-icons text-blue-400 mb-1">face</span>
                     <span><span className="font-semibold text-blue-800">{game.minAge}</span> ans</span>
                   </div>
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
-                    <span className="material-icons text-gray-400 mb-1">group</span>
+                    <span className="material-icons text-blue-400 mb-1">group</span>
                     <span><span className="font-semibold text-blue-800">{game.players?.min}-{game.players?.max}</span></span>
                   </div>
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
-                    <span className="material-icons text-gray-400 mb-1">schedule</span>
+                    <span className="material-icons text-blue-400 mb-1">schedule</span>
                     <span><span className="font-semibold text-blue-800">{game.duration}</span> mn</span>
                   </div>
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
-                    <span className="material-icons text-gray-400 mb-1">sell</span>
+                    <span className="material-icons text-blue-400 mb-1">sell</span>
                     <span><span className="font-semibold text-blue-800">{game.lowestPrice > 0 ? game.lowestPrice : '--'}</span> €</span>
                   </div>
                 </div>
@@ -145,11 +153,23 @@ export default async function HomePage({ searchParams }) {
                 <div className="mt-auto pt-4 flex flex-col gap-4 border-t border-gray-100">
                   {game.mechanics && game.mechanics.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {game.mechanics.slice(0, 3).map((mech, index) => (
-                        <span key={index} className="bg-gray-100 text-gray-700 px-2.5 py-1 rounded text-xs font-medium border border-gray-200">
-                          {mech}
-                        </span>
-                      ))}
+                      {game.mechanics.slice(0, 3).map((mech, index) => {
+                        // On vérifie si la mécanique est "Enfants" (en ignorant la casse au cas où)
+                        const isEnfants = mech.toLowerCase() === 'enfants';
+                        
+                        return (
+                          <span 
+                            key={index} 
+                            className={`px-2.5 py-1 rounded text-xs font-medium border ${
+                              isEnfants 
+                                ? 'bg-[#A7C957] text-white border-[#A7C957]' 
+                                : 'bg-gray-100 text-gray-700 border-gray-200'
+                            }`}
+                          >
+                            {mech}
+                          </span>
+                        );
+                      })}
                     </div>
                   )}
 

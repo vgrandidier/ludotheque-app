@@ -59,7 +59,8 @@ export default function FilterBar({ uniqueMechanics }) {
             onChange={(e) => handleFilterChange("award", e.target.value)}
             className="w-full border border-gray-300 rounded-md p-2 text-sm bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white focus:outline-none"
           >
-            <option value="">Toutes les récompenses</option>
+            <option value="">Toutes les jeux</option>
+            <option value="anyAward">Toutes les récompenses</option>
             <option value="asDor">As d'Or (Uniquement)</option>
             <option value="spiel">Spiel des Jahres (Uniquement)</option>
           </select>

@@ -36,6 +36,8 @@ const GameSchema = new mongoose.Schema({
   
   duration: { type: Number, required: true },            // Champ 9 (en minutes)
   lowestPrice: { type: Number, default: 0 },             // Champ 10 (Calculé automatiquement)
+  usedPriceMin: { type: Number }, // Prix minimum en occasion
+  usedPriceMax: { type: Number }, // Prix maximum en occasion
   sellers: [SellerSchema],                               // Champ 11
   youtubeUrl: { type: String, trim: true },              // Champ 12
   boxImage: { type: String, required: true },            // Champ 13 (URL Cloudinary)
