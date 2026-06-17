@@ -163,7 +163,7 @@ export default async function HomePage({ searchParams }) {
                             className={`px-2.5 py-1 rounded text-xs font-medium border ${
                               isEnfants 
                                 ? 'bg-[#A7C957] text-white border-[#A7C957]' 
-                                : 'bg-gray-100 text-gray-700 border-gray-200'
+                                : 'bg-gray-200 text-gray-700 border-gray-200'
                             }`}
                           >
                             {mech}
