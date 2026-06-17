@@ -122,24 +122,28 @@ export default function EditGamePage() {
         lowestPrice: calculatedLowestPrice
       };
 
-      // 3. On envoie dataToSend au lieu de formData
-      const res = await fetch(`/api/games/${id}`, {
-        method: "PUT",
+      // 3. FETCH ADAPTÉ POUR LA CRÉATION (POST et pas d'ID dans l'URL)
+      const res = await fetch(`/api/games`, {
+        method: "POST", // On utilise POST pour créer
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dataToSend), // C'est ici que la magie opère
+        body: JSON.stringify(dataToSend),
       });
 
-      // --- Le reste de ton code reste strictement identique ---
       if (res.ok) {
-        // Retour automatique à la fiche du jeu après modification
-        router.push(`/games/${id}`);
+        // 4. On récupère la réponse du serveur pour connaître l'ID du jeu fraîchement créé
+        const newGame = await res.json();
+        
+        // On redirige vers la page du nouveau jeu
+        router.push(`/games/${newGame._id}`);
         router.refresh(); 
       } else {
         const errorData = await res.json();
         setError(errorData.error || "Erreur serveur");
       }
     } catch (err) {
-      setError("Erreur réseau");
+      // Astuce de pro : On force l'affichage de l'erreur cachée dans la console !
+      console.error("Détail du plantage intercepté :", err);
+      setError("Erreur réseau ou problème d'envoi");
     } finally {
       setIsSubmitting(false);
     }

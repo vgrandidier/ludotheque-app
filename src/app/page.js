@@ -91,13 +91,13 @@ export default async function HomePage({ searchParams }) {
               
               {/* Image de la boîte */}
               {game.boxImage && (
-                <div className="bg-gray-50 h-56 flex items-center justify-center p-4 border-b border-b-gray-100">
+                <div className="bg-white h-56 flex items-center justify-center p-4 border-b border-b-gray-100">
                   <img src={game.boxImage} alt={game.title} className="max-h-full max-w-full object-contain rounded" />
                 </div>
               )}
 
               {/* Contenu textuel de la carte */}
-              <div className="p-5 flex flex-col flex-grow">
+              <div className="p-5 flex flex-col grow bg-gray-50">
                 
                 {/* Section Badges (Labels et Récompenses) */}
                 <div className="mb-3 flex flex-wrap gap-2">
@@ -123,7 +123,7 @@ export default async function HomePage({ searchParams }) {
                 <h2 className="text-xl font-bold mb-4 text-gray-800 line-clamp-1">{game.title}</h2>
                 
                 {/* Ligne des Caractéristiques avec Material Icons */}
-                <div className="flex justify-between items-center text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100 text-center">
+                <div className="flex justify-between items-center text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100 text-center ">
                   <div className="flex flex-col items-center">
                     <span className="material-icons text-blue-400 mb-1">face</span>
                     <span><span className="font-semibold text-blue-800">{game.minAge}</span> ans</span>
