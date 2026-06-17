@@ -107,25 +107,39 @@ export default function EditGamePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError("");
 
     try {
-      const res = await fetch("/api/games", {
-        method: "POST",
+      // 1. On recalcule le meilleur prix officiel à partir des vendeurs actuels
+      const validPrices = formData.sellers && formData.sellers.length > 0 
+        ? formData.sellers.map(s => Number(s.price)).filter(p => p > 0) 
+        : [];
+      
+      const calculatedLowestPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+
+      // 2. On fusionne ce nouveau prix avec le reste des données
+      const dataToSend = {
+        ...formData,
+        lowestPrice: calculatedLowestPrice
+      };
+
+      // 3. On envoie dataToSend au lieu de formData
+      const res = await fetch(`/api/games/${id}`, {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend), // C'est ici que la magie opère
       });
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Une erreur est survenue");
+      // --- Le reste de ton code reste strictement identique ---
+      if (res.ok) {
+        // Retour automatique à la fiche du jeu après modification
+        router.push(`/games/${id}`);
+        router.refresh(); 
+      } else {
+        const errorData = await res.json();
+        setError(errorData.error || "Erreur serveur");
       }
-
-      // Succès ! On redirige vers la page d'accueil
-      router.push("/");
-      router.refresh(); 
     } catch (err) {
-      setError(err.message);
+      setError("Erreur réseau");
     } finally {
       setIsSubmitting(false);
     }

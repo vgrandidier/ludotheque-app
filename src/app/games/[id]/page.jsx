@@ -197,53 +197,77 @@ export default async function GameDetailsPage({ params }) {
           {game.sellers && game.sellers.length > 0 && (
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Où l'acheter ?</h3>
+              {/* Liste des vendeurs (Où l'acheter ?) */}
+            {/* Liste des vendeurs (Où l'acheter ?) */}
               <div className="space-y-3">
-                {[...game.sellers]
-                  .sort((a, b) => (a.price || 0) - (b.price || 0))
-                  .map((seller, index) => (
-                    <div 
-                      key={index} 
-                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-md border gap-4 ${
-                        seller.isLowest ? 'border-green-400 bg-green-50' : 'border-gray-200'
-                      }`}
-                    >
-                      <div>
-                        {/* Ligne avec le nom et le badge du type */}
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-semibold text-gray-800">{seller.name}</p>
+                {(() => {
+                  // 1. On calcule le VRAI prix minimum
+                  const validPrices = game.sellers.map(s => Number(s.price)).filter(p => p > 0);
+                  const actualLowestPrice = validPrices.length > 0 ? Math.min(...validPrices) : null;
+
+                  // 2. NOUVEAU : On crée une copie de la liste et on la trie du moins cher au plus cher
+                  const sortedSellers = [...game.sellers].sort((a, b) => {
+                    // On place les prix à 0 ou vides à la fin
+                    if (!a.price) return 1;
+                    if (!b.price) return -1;
+                    return Number(a.price) - Number(b.price);
+                  });
+
+                  // 3. On utilise 'sortedSellers' au lieu de 'game.sellers' pour l'affichage
+                  return sortedSellers.map((seller, index) => {
+                    const isBestPrice = Number(seller.price) === actualLowestPrice;
+
+                    return (
+                      <div 
+                        key={index} 
+                        className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
+                          isBestPrice ? "bg-green-50 border-green-400" : "bg-white border-gray-200"
+                        }`}
+                      >
+                        {/* Colonne de gauche : Nom et Badge */}
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-gray-800">{seller.name}</span>
+                            
+                            {/* Badge de type */}
+                            {seller.type && seller.type.toLowerCase().includes('marketplace') ? (
+                              <span className="text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded-sm border border-gray-200 flex items-center gap-1 w-max">
+                                <span className="material-icons text-[14px]">shopping_cart</span> Marketplace
+                              </span>
+                            ) : seller.type ? (
+                              <span className="text-[10px] font-bold uppercase tracking-wide bg-purple-50 text-purple-700 px-2 py-0.5 rounded-sm border border-purple-200 flex items-center gap-1 w-max">
+                                <span className="material-icons text-[14px]">casino</span> Boutique spécialisée
+                              </span>
+                            ) : null}
+                          </div>
                           
-                          {/* Affichage du badge selon le type */}
-                          {seller.type && seller.type.toLowerCase().includes('marketplace') ? (
-                            <span className="text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded-sm border border-gray-200 flex items-center gap-1 w-max">
-                              <span className="material-icons text-[14px]">shopping_cart</span> Marketplace
+                          {/* Mention Meilleur prix */}
+                          {isBestPrice && (
+                            <span className="text-xs font-bold text-green-600 uppercase tracking-wide mt-1">
+                              Meilleur prix
                             </span>
-                          ) : seller.type ? (
-                            <span className="text-[10px] font-bold uppercase tracking-wide bg-purple-50 text-purple-700 px-2 py-0.5 rounded-sm border border-purple-200 flex items-center gap-1 w-max">
-                              <span className="material-icons text-[14px]">casino</span> Boutique spécialisée
-                            </span>
-                          ) : null}
+                          )}
                         </div>
 
-                        {/* Meilleur prix */}
-                        {seller.isLowest && <span className="text-xs text-green-600 font-bold uppercase tracking-wider block">Meilleur prix</span>}
-                      </div>
-                      
-                      {/* Prix et Bouton */}
-                      <div className="flex items-center gap-4">
-                        <span className="text-xl font-bold text-gray-800 whitespace-nowrap">{seller.price} €</span>
-                        {seller.url && (
+                        {/* Colonne de droite : Prix et Bouton */}
+                        <div className="flex items-center gap-4">
+                          <span className="text-lg font-bold text-gray-900">
+                            {seller.price} €
+                          </span>
+                          
                           <a 
                             href={seller.url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm font-medium transition-colors whitespace-nowrap"
+                            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors shadow-sm"
                           >
                             Voir l'offre
                           </a>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}
