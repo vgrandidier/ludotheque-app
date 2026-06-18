@@ -41,7 +41,7 @@ export default async function GameDetailsPage({ params }) {
             href={`/games/${game._id.toString()}/edit`} 
             className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-md hover:bg-blue-100 transition-colors font-medium flex items-center gap-2 shadow-sm"
           >
-            <span className="material-icons text-sm">edit</span> Modifier
+            Modifier le jeu
           </Link>
       </div>
 
@@ -64,16 +64,27 @@ export default async function GameDetailsPage({ params }) {
           {/* Ligne des statistiques */}
           <div className="flex flex-wrap items-center gap-y-3 gap-x-6 mt-4 text-gray-600 font-medium">
             <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1"><span className="material-icons text-base text-blue-600">group</span> {game.players?.min} - {game.players?.max} joueurs</span>
-              <span className="flex items-center gap-1"><span className="material-icons text-base text-blue-600">schedule</span> {game.duration} min</span>
-              <span className="flex items-center gap-1"><span className="material-icons text-base text-blue-600">face</span> {game.minAge}+ ans</span>
-            </div>
+              <div className="flex flex-col items-center">
+                    <span className="material-icons text-[#679BBC] mb-1">face</span>
+                    <span><span className="font-semibold text-gray-800">{game.minAge}</span>+</span>
+                  </div>
+                  <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
+                    <span className="material-icons text-[#679BBC] mb-1">group</span>
+                    <span><span className="font-semibold text-gray-800">{game.players?.min === game.players?.max 
+    ? `${game.players?.min}` 
+    : `${game.players?.min} - ${game.players?.max}`}</span></span>
+                  </div>
+                  <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
+                    <span className="material-icons text-[#679BBC] mb-1">schedule</span>
+                    <span><span className="font-semibold text-gray-800">{game.duration}</span> mn</span>
+                  </div>
+                </div>
           </div>
 
         </div>
 
         {/* Bloc des prix (Aligné à droite) */}
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex flex-row flex-wrap items-center gap-3 mt-2">
             
             {/* Bloc Occasion (Ne s'affiche que si un prix min ou max est renseigné) */}
             {(game.usedPriceMin || game.usedPriceMax) && (
@@ -190,12 +201,24 @@ export default async function GameDetailsPage({ params }) {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Mécaniques de jeu</h3>
               <div className="flex flex-wrap gap-2">
-                {game.mechanics.map((mech, index) => (
-                  <span key={index} className="bg-blue-50 text-blue-700 px-3 py-1 rounded-md text-sm border border-blue-100">
-                    {mech}
-                  </span>
-                ))}
-              </div>
+                      {game.mechanics.slice(0, 3).map((mech, index) => {
+                        // On vérifie si la mécanique est "Enfants" (en ignorant la casse au cas où)
+                        const isEnfants = mech.toLowerCase() === 'enfants';
+                        
+                        return (
+                          <span 
+                            key={index} 
+                            className={`px-2.5 py-1 rounded text-xs font-medium border ${
+                              isEnfants 
+                                ? 'bg-[#A7C957] text-white border-[#A7C957]' 
+                                : 'bg-gray-200 text-gray-700 border-gray-200'
+                            }`}
+                          >
+                            {mech}
+                          </span>
+                        );
+                      })}
+                    </div>
             </div>
           )}
 
@@ -233,16 +256,15 @@ export default async function GameDetailsPage({ params }) {
                         {/* Colonne de gauche : Nom et Badge */}
                         <div className="flex flex-col gap-1">
                           <div className="flex items-center gap-3">
-                            <span className="font-bold text-gray-800">{seller.name}</span>
                             
                             {/* Badge de type */}
                             {seller.type && seller.type.toLowerCase().includes('marketplace') ? (
-                              <span className="text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded-sm border border-gray-200 flex items-center gap-1 w-max">
-                                <span className="material-icons text-[14px]">shopping_cart</span> Marketplace
+                              <span className="text-[14px] font-bold tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded-sm border border-gray-200 flex items-center gap-1 w-max">
+                                <span className="material-icons text-[14px]">shopping_cart</span> <span className="font-bold text-gray-800">{seller.name}</span>
                               </span>
                             ) : seller.type ? (
-                              <span className="text-[10px] font-bold uppercase tracking-wide bg-purple-50 text-purple-700 px-2 py-0.5 rounded-sm border border-purple-200 flex items-center gap-1 w-max">
-                                <span className="material-icons text-[14px]">casino</span> Boutique spécialisée
+                              <span className="text-[14px] font-bold tracking-wide bg-purple-50 text-purple-700 px-2 py-0.5 rounded-sm border border-purple-200 flex items-center gap-1 w-max">
+                                <span className="material-icons text-[14px]">casino</span> <span className="font-bold text-purple-800">{seller.name}</span>
                               </span>
                             ) : null}
                           </div>

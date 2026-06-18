@@ -61,16 +61,17 @@ export default async function HomePage({ searchParams }) {
     <div className="max-w-7xl mx-auto p-6">
       
       {/* En-tête principal */}
-      <div className="flex justify-between items-center mb-8">
-        {/* On applique ici la classe de la police Bebas Neue */}
+      <div className="flex flex-col gap-3 md:flex-row md:justify-between md:items-center mb-6">
         <h1 className={`text-5xl text-gray-800 flex items-center gap-3 tracking-wide ${bebasNeue.className}`}>
           <span className="material-icons text-4xl text-red-600">casino</span> Ma Ludothèque Idéale
         </h1>
-        <Link 
-          href="/edit" 
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 shadow-sm"
+        
+        {/* Bouton : Pleine largeur sur mobile, taille normale sur grand écran */}
+        <Link
+          href="/edit"
+          className="w-full md:w-auto text-center bg-blue-50 text-blue-700 px-4 py-2 rounded-md font-medium hover:bg-blue-100 transition-colors shadow-sm block"
         >
-          <span className="material-icons text-sm">add</span> Ajouter un jeu
+          Ajouter un jeu
         </Link>
       </div>
 
@@ -132,20 +133,22 @@ export default async function HomePage({ searchParams }) {
                 {/* Ligne des Caractéristiques avec Material Icons */}
                 <div className="flex justify-between items-center text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100 text-center ">
                   <div className="flex flex-col items-center">
-                    <span className="material-icons text-blue-400 mb-1">face</span>
-                    <span><span className="font-semibold text-blue-800">{game.minAge}</span> ans</span>
+                    <span className="material-icons text-[#679BBC] mb-1">face</span>
+                    <span><span className="font-semibold text-gray-800">{game.minAge}</span>+ ans</span>
                   </div>
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
-                    <span className="material-icons text-blue-400 mb-1">group</span>
-                    <span><span className="font-semibold text-blue-800">{game.players?.min}-{game.players?.max}</span></span>
+                    <span className="material-icons text-[#679BBC] mb-1">group</span>
+                    <span><span className="font-semibold text-gray-800">{game.players?.min === game.players?.max 
+    ? `${game.players?.min}` 
+    : `${game.players?.min} - ${game.players?.max}`}</span></span>
                   </div>
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
-                    <span className="material-icons text-blue-400 mb-1">schedule</span>
-                    <span><span className="font-semibold text-blue-800">{game.duration}</span> mn</span>
+                    <span className="material-icons text-[#679BBC] mb-1">schedule</span>
+                    <span><span className="font-semibold text-gray-800">{game.duration}</span> mn</span>
                   </div>
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
-                    <span className="material-icons text-blue-400 mb-1">sell</span>
-                    <span><span className="font-semibold text-blue-800">{game.lowestPrice > 0 ? game.lowestPrice : '--'}</span> €</span>
+                    <span className="material-icons text-[#679BBC] mb-1">sell</span>
+                    <span><span className="font-semibold text-gray-800">{game.lowestPrice > 0 ? game.lowestPrice : '--'}</span> €</span>
                   </div>
                 </div>
 
