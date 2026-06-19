@@ -315,7 +315,7 @@ export default function EditGamePage() {
           <div className="flex flex-col-reverse sm:flex-row w-full sm:w-auto gap-3">
             
             {/* Conteneur pour le bouton de suppression (Enforce la pleine largeur sur mobile) */}
-            <div className="w-full sm:w-auto [&_button]:w-full [&_a]:w-full">
+            <div className="w-full sm:w-auto [&_button]:w-full [&_button]:flex [&_button]:justify-center [&_button]:items-center">
               <DeleteGameButton id={id} title={formData.title} />
             </div>
 
