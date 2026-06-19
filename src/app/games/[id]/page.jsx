@@ -122,9 +122,13 @@ export default async function GameDetailsPage({ params }) {
                 href={game.bgaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 bg-[#1b2836] hover:bg-[#2a3b4c] text-white text-sm font-medium px-4 py-3.5 rounded-lg transition-colors shadow-sm w-full mb-6"
+                className="flex items-center justify-center gap-3 bg-[#1b2836] hover:bg-[#12AFF7] text-white text-sm font-medium px-4 py-3.5 rounded-lg transition-colors shadow-sm w-full mb-6"
               >
-                <span className="material-icons text-[22px] text-[#66b2ff]">gamepad</span>
+                <img 
+                  src="/bga_logo.png" 
+                  alt="Logo Board Game Arena" 
+                  className="w-6 h-6 object-contain"
+                />
                 Jouer sur Board Game Arena
               </a>
             )}

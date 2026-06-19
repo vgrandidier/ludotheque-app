@@ -96,8 +96,22 @@ export default async function HomePage({ searchParams }) {
               
               {/* Image de la boîte */}
               {game.boxImage && (
-                <div className="bg-white h-56 flex items-center justify-center p-4 border-b border-b-gray-100">
+                <div className="relative bg-white h-56 flex items-center justify-center p-4 border-b border-b-gray-100">
                   <img src={game.boxImage} alt={game.title} className="max-h-full max-w-full object-contain rounded" />
+                  
+                  {/* Indicateur Board Game Arena (Image officielle) */}
+                  {game.bgaUrl && (
+                    <div 
+                      className="absolute bottom-3 right-3 w-8 h-8 bg-white rounded-full shadow-md overflow-hidden border border-gray-200"
+                      title="Jouable sur Board Game Arena"
+                    >
+                      <img 
+                        src="/bga_logo.png" 
+                        alt="BGA" 
+                        className="w-full h-full object-contain p-0.5" 
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
