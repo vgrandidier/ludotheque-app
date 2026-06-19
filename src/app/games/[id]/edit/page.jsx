@@ -24,6 +24,8 @@ export default function EditGamePage() {
     asDor: { isNominated: false, year: "" }
   });
 
+  const [allGames, setAllGames] = useState([]);
+
   // 1. Allons chercher les données actuelles du jeu au chargement
   useEffect(() => {
     const fetchGame = async () => {
@@ -52,6 +54,29 @@ export default function EditGamePage() {
 
     if (id) fetchGame();
   }, [id]);
+
+ // Récupérer la liste complète des jeux au chargement de la page
+  useEffect(() => {
+    const fetchAllGames = async () => {
+      try {
+        const res = await fetch('/api/games');
+        if (res.ok) {
+          const data = await res.json();
+          console.log("Données API allGames reçues :", data);
+          
+          // Sécurisation : on force l'extraction d'un tableau valide
+          const gamesArray = Array.isArray(data) ? data : (data.games || data.data || []);
+          setAllGames(gamesArray);
+        } else {
+          console.error("Échec de la requête API, statut :", res.status);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération de la liste des jeux :", error);
+      }
+    };
+
+    fetchAllGames();
+  }, []);
 
   // 2. Gestion des champs (identique à la création)
   const handleChange = (e) => {
@@ -160,20 +185,58 @@ export default function EditGamePage() {
           </div>
         </div>
 
-        {/* Option Extension */}
-        <div className="flex items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-md shadow-sm mb-4">
-          <input
-            type="checkbox"
-            id="isExtension"
-            name="isExtension"
-            checked={formData.isExtension || false}
-            onChange={(e) => setFormData({ ...formData, isExtension: e.target.checked })}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-          />
-          <label htmlFor="isExtension" className="text-sm font-semibold text-gray-700 cursor-pointer select-none flex items-center gap-1.5">
-            <span className="material-icons text-gray-500 text-lg">extension</span>
-            Cette fiche concerne une extension
-          </label>
+        {/* === Zone Extension === */}
+        <div className="bg-gray-50 p-4 border border-gray-200 rounded-lg shadow-sm mb-6">
+          {/* Case à cocher (identique) */}
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isExtension"
+              name="isExtension"
+              checked={formData.isExtension || false}
+              onChange={(e) => setFormData({ ...formData, isExtension: e.target.checked })}
+              className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+            />
+            <label htmlFor="isExtension" className="text-sm font-semibold text-gray-700 cursor-pointer select-none flex items-center gap-1.5">
+              <span className="material-icons text-gray-500 text-lg">extension</span>
+              Cette fiche concerne une extension
+            </label>
+          </div>
+
+          {/* SÉLECTEUR DU JEU DE BASE (Affiché uniquement si 'isExtension' est coché) */}
+          {formData.isExtension && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Appartient au jeu de base :
+              </label>
+              <select
+                name="baseGame"
+                value={formData.baseGame || ""}
+                onChange={(e) => setFormData({ ...formData, baseGame: e.target.value })}
+                className="w-full border border-gray-300 rounded-md p-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              >
+                <option value="">-- Sélectionner le jeu de base --</option>
+                {/* On map sur la liste complète des jeux chargés */}
+                {allGames
+                  .filter(g => {
+                    // On récupère l'ID selon la façon dont il a été sérialisé
+                    const currentId = g._id || g.id;
+                    return currentId !== id; 
+                  })
+                  // 🔴 NOUVEAUTÉ : Le tri alphabétique sur le titre
+                  .sort((a, b) => a.title.localeCompare(b.title))
+                  .map((game) => {
+                    const gameId = game._id || game.id;
+                    return (
+                      <option key={gameId} value={gameId}>
+                        {game.title}
+                      </option>
+                    );
+                  })
+                }
+              </select>
+            </div>
+          )}
         </div>
 
         {/* --- SECTION 2 : Caractéristiques techniques --- */}

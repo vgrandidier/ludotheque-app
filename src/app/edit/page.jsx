@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import SellerManager from "@/components/SellerManager";
 import MechanicsManager from "@/components/MechanicsManager";
 
-export default function EditGamePage() {
+export default function NewGamePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-// 1. Initialisation complète de l'état
+  // 1. NOUVEAU : État pour stocker la liste de tous les jeux
+  const [allGames, setAllGames] = useState([]);
+
+  // 2. Initialisation complète de l'état (avec isExtension et baseGame)
   const [formData, setFormData] = useState({
     title: "",
     generalPresentation: "",
@@ -26,20 +29,42 @@ export default function EditGamePage() {
     boardImage: "",
     mechanics: [], 
     sellers: [],
-    spielDesJahres: { isNominated: false, year: "" },
-    asDor: { isNominated: false, year: "" }
+    spielDesJahres: { status: "aucun", year: "" },
+    asDor: { status: "aucun", year: "" },
+    isExtension: false,
+    baseGame: null,
+    usedPriceMin: "",
+    usedPriceMax: "",
+    bgaUrl: ""
   });
 
-  // 2. Gestion générique classique (déjà existante)
+  // 3. NOUVEAU : Récupérer la liste complète des jeux au chargement de la page
+  useEffect(() => {
+    const fetchAllGames = async () => {
+      try {
+        const res = await fetch('/api/games');
+        if (res.ok) {
+          const data = await res.json();
+          const gamesArray = Array.isArray(data) ? data : (data.games || data.data || []);
+          setAllGames(gamesArray);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération de la liste des jeux :", error);
+      }
+    };
+
+    fetchAllGames();
+  }, []);
+
+  // 4. Gestion générique classique
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 2.bis Gestion des champs imbriqués (Joueurs, Récompenses)
+  // 5. Gestion des champs imbriqués (Joueurs, Récompenses)
   const handleNestedChange = (e, category) => {
     const { name, value, type, checked } = e.target;
-    // Si c'est une case à cocher, on prend "checked", sinon "value"
     const finalValue = type === 'checkbox' ? checked : value;
     
     setFormData((prev) => ({
@@ -51,42 +76,22 @@ export default function EditGamePage() {
     }));
   };
 
-  {/* Section : Mécaniques */}
-    <div className="my-6">
-    <MechanicsManager 
-        mechanics={formData.mechanics} 
-        onChange={(newMechanics) => setFormData((prev) => ({ ...prev, mechanics: newMechanics }))} 
-    />
-    </div>
-
-  {/* Section : Gestion des vendeurs */}
-    <div className="my-6">
-    <SellerManager 
-        sellers={formData.sellers} 
-        onChange={(newSellers) => setFormData((prev) => ({ ...prev, sellers: newSellers }))} 
-    />
-    </div>
-
-  // 3. Logique d'upload d'image vers Cloudinary
+  // 6. Logique d'upload d'image vers Cloudinary
   const handleImageUpload = async (e, fieldName) => {
     const file = e.target.files[0];
     if (!file) return;
 
     try {
-      // A. Demander la signature à notre backend
       const sigRes = await fetch("/api/upload/signature");
       const { signature, timestamp, folder } = await sigRes.json();
 
-      // B. Préparer le colis pour Cloudinary
       const cloudData = new FormData();
       cloudData.append("file", file);
       cloudData.append("signature", signature);
       cloudData.append("timestamp", timestamp);
       cloudData.append("folder", folder);
       cloudData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY); 
-      // Note : Il faudra ajouter NEXT_PUBLIC_CLOUDINARY_API_KEY dans ton .env.local
 
-      // C. Envoyer directement à Cloudinary
       const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
       const uploadRes = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
@@ -94,8 +99,6 @@ export default function EditGamePage() {
       );
       
       const uploadData = await uploadRes.json();
-
-      // D. Sauvegarder l'URL renvoyée dans notre formulaire
       setFormData((prev) => ({ ...prev, [fieldName]: uploadData.secure_url }));
     } catch (err) {
       console.error("Erreur d'upload :", err);
@@ -103,37 +106,38 @@ export default function EditGamePage() {
     }
   };
 
-  // 4. Soumission finale vers notre API MongoDB
+  // 7. Soumission finale vers notre API MongoDB
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(""); // On efface les anciennes erreurs au cas où
 
+    // 🛑 LA BARRIÈRE DE SÉCURITÉ : On vérifie les images
+    if (!formData.boxImage || !formData.boardImage) {
+      setError("⚠️ Veuillez uploader l'image de la boîte et l'image du plateau avant d'enregistrer.");
+      setIsSubmitting(false); // On débloque le bouton
+      return; // On annule tout, l'enregistrement s'arrête ici !
+    }
     try {
-      // 1. On recalcule le meilleur prix officiel à partir des vendeurs actuels
       const validPrices = formData.sellers && formData.sellers.length > 0 
         ? formData.sellers.map(s => Number(s.price)).filter(p => p > 0) 
         : [];
       
       const calculatedLowestPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
 
-      // 2. On fusionne ce nouveau prix avec le reste des données
       const dataToSend = {
         ...formData,
         lowestPrice: calculatedLowestPrice
       };
 
-      // 3. FETCH ADAPTÉ POUR LA CRÉATION (POST et pas d'ID dans l'URL)
       const res = await fetch(`/api/games`, {
-        method: "POST", // On utilise POST pour créer
+        method: "POST", 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSend),
       });
 
       if (res.ok) {
-        // 4. On récupère la réponse du serveur pour connaître l'ID du jeu fraîchement créé
         const newGame = await res.json();
-        
-        // On redirige vers la page du nouveau jeu
         router.push(`/games/${newGame._id}`);
         router.refresh(); 
       } else {
@@ -141,7 +145,6 @@ export default function EditGamePage() {
         setError(errorData.error || "Erreur serveur");
       }
     } catch (err) {
-      // Astuce de pro : On force l'affichage de l'erreur cachée dans la console !
       console.error("Détail du plantage intercepté :", err);
       setError("Erreur réseau ou problème d'envoi");
     } finally {
@@ -151,7 +154,7 @@ export default function EditGamePage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-<div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Ajouter un nouveau jeu</h1>
       </div>  
       {error && (
@@ -191,20 +194,53 @@ export default function EditGamePage() {
           </div>
         </div>
 
-        {/* Option Extension */}
-        <div className="flex items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-md shadow-sm mb-4">
-          <input
-            type="checkbox"
-            id="isExtension"
-            name="isExtension"
-            checked={formData.isExtension || false}
-            onChange={(e) => setFormData({ ...formData, isExtension: e.target.checked })}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-          />
-          <label htmlFor="isExtension" className="text-sm font-semibold text-gray-700 cursor-pointer select-none flex items-center gap-1.5">
-            <span className="material-icons text-gray-500 text-lg">extension</span>
-            Cette fiche concerne une extension
-          </label>
+        {/* === Zone Extension === */}
+        <div className="bg-gray-50 p-4 border border-gray-200 rounded-lg shadow-sm mb-6">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isExtension"
+              name="isExtension"
+              checked={formData.isExtension || false}
+              onChange={(e) => setFormData({ 
+                ...formData, 
+                isExtension: e.target.checked,
+                baseGame: e.target.checked ? formData.baseGame : null 
+              })}
+              className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+            />
+            <label htmlFor="isExtension" className="text-sm font-semibold text-gray-700 cursor-pointer select-none flex items-center gap-1.5">
+              <span className="material-icons text-gray-500 text-lg">extension</span>
+              Cette fiche concerne une extension
+            </label>
+          </div>
+
+          {formData.isExtension && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Appartient au jeu de base :
+              </label>
+              <select
+                name="baseGame"
+                value={formData.baseGame || ""}
+                onChange={(e) => setFormData({ ...formData, baseGame: e.target.value })}
+                className="w-full border border-gray-300 rounded-md p-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              >
+                <option value="">-- Sélectionner le jeu de base --</option>
+                {allGames
+                  .sort((a, b) => a.title.localeCompare(b.title))
+                  .map((game) => {
+                    const gameId = game._id || game.id;
+                    return (
+                      <option key={gameId} value={gameId}>
+                        {game.title}
+                      </option>
+                    );
+                  })
+                }
+              </select>
+            </div>
+          )}
         </div>
 
         {/* --- SECTION 2 : Caractéristiques techniques --- */}
@@ -228,7 +264,7 @@ export default function EditGamePage() {
               name="min"
               min="1"
               required
-              value={formData.players.min}
+              value={formData.players?.min || 1}
               onChange={(e) => handleNestedChange(e, 'players')}
               className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500"
             />
@@ -240,7 +276,7 @@ export default function EditGamePage() {
               name="max"
               min="1"
               required
-              value={formData.players.max}
+              value={formData.players?.max || 4}
               onChange={(e) => handleNestedChange(e, 'players')}
               className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500"
             />
@@ -322,7 +358,8 @@ export default function EditGamePage() {
             onChange={(newSellers) => setFormData((prev) => ({ ...prev, sellers: newSellers }))} 
           />
         </div>
-{/* Encadré : Marché de l'occasion */}
+
+        {/* Encadré : Marché de l'occasion */}
         <div className="mt-6 bg-orange-50 p-5 rounded-lg border border-orange-200 shadow-sm">
           <h3 className="text-sm font-bold text-orange-800 uppercase tracking-wider mb-3 flex items-center gap-2">
             <span className="material-icons text-base">recycling</span> Marché de l'occasion (Estimation)
@@ -354,6 +391,7 @@ export default function EditGamePage() {
             </div>
           </div>
         </div>
+
         {/* --- SECTION 6 : Médias & Récompenses --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
@@ -469,7 +507,7 @@ export default function EditGamePage() {
           
         </div>
 
-{/* Boutons de validation en bas */}
+        {/* Boutons de validation en bas */}
         <div className="flex justify-end items-center gap-4 pt-6 border-t border-gray-200">
           <button 
             type="button" 

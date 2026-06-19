@@ -12,10 +12,11 @@ export default async function GameDetailsPage({ params }) {
   // 2. Connexion à la base de données
   await connectToDatabase();
 
-  // 3. Recherche du jeu spécifique dans la base
+// 3. Recherche du jeu spécifique dans la base
   let game;
   try {
-    game = await Game.findById(id).lean();
+    // 🔴 MODIFICATION ICI : On ajoute le .populate('baseGame') juste avant le .lean()
+    game = await Game.findById(id).populate('baseGame').lean();
   } catch (error) {
     // Si l'ID est mal formaté
     return notFound();
@@ -24,6 +25,19 @@ export default async function GameDetailsPage({ params }) {
   // Si le jeu n'existe pas
   if (!game) {
     return notFound();
+  }
+
+  // 4. 🔴 NOUVEAUTÉ : Recherche inverse pour trouver les extensions de ce jeu
+  try {
+    const extensions = await Game.find({ baseGame: id })
+                                 .select('title boxImage isExtension')
+                                 .lean();
+    
+    // On attache les extensions trouvées à notre objet jeu
+    game.extensions = extensions;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des extensions :", error);
+    game.extensions = []; // Sécurité : on met un tableau vide si ça plante
   }
 
   return (
@@ -338,6 +352,58 @@ export default async function GameDetailsPage({ params }) {
 
         </div>
       </div>
+      {/* Section : Univers du jeu (Jeu de base & Extensions) */}
+        {/* Condition : affiché uniquement s'il y a un lien de parenté */}
+        {(game.baseGame || (game.extensions && game.extensions.length > 0)) && (
+          <div className="mt-12 pt-8 border-t border-gray-200">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Dans le même univers</h3>
+
+            <div className="flex flex-wrap gap-6">
+
+              {/* Cas A : C'est une EXTENSION -> On affiche le jeu de base */}
+              {game.baseGame && (
+                <a href={`/games/${game.baseGame._id}`} className="group flex flex-col w-36">
+                  <div className="relative bg-white p-2 rounded-lg border border-gray-200 shadow-sm h-36 flex items-center justify-center mb-3 group-hover:border-blue-400 group-hover:shadow-md transition-all">
+                    {/* Petite étiquette superposée */}
+                    <span className="absolute -top-2 -left-2 bg-blue-100 text-blue-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded shadow-sm border border-blue-200 z-10">
+                      Jeu de base
+                    </span>
+                    <img 
+                      src={game.baseGame.boxImage || "/placeholder.png"} 
+                      alt={game.baseGame.title} 
+                      className="max-h-full max-w-full object-contain transition-transform group-hover:scale-105" 
+                    />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-800 text-center line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    {game.baseGame.title}
+                  </p>
+                </a>
+              )}
+
+              {/* Cas B : C'est un JEU DE BASE -> On affiche la ou les extensions */}
+              {game.extensions && game.extensions.map((ext) => (
+                <a key={ext._id} href={`/games/${ext._id}`} className="group flex flex-col w-36">
+                  <div className="relative bg-white p-2 rounded-lg border border-gray-200 shadow-sm h-36 flex items-center justify-center mb-3 group-hover:border-amber-400 group-hover:shadow-md transition-all">
+                    {/* Petite étiquette superposée */}
+                    <span className="absolute -top-2 -right-2 bg-amber-100 text-amber-800 text-[9px] font-bold uppercase px-2 py-0.5 rounded shadow-sm border border-amber-300 z-10">
+                      Extension
+                    </span>
+                    <img 
+                      src={ext.boxImage || "/placeholder.png"} 
+                      alt={ext.title} 
+                      className="max-h-full max-w-full object-contain transition-transform group-hover:scale-105" 
+                    />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-800 text-center line-clamp-2 group-hover:text-amber-600 transition-colors">
+                    {ext.title}
+                  </p>
+                </a>
+              ))}
+
+            </div>
+          </div>
+        )}
+
     </div>
   );
 }

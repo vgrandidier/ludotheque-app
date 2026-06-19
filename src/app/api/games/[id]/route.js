@@ -1,74 +1,77 @@
+import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
 import Game from "@/models/Game";
-import { NextResponse } from "next/server";
 
-export async function PUT(request, { params }) {
-  try {
-    await connectToDatabase();
-    
-    // Nouveauté Next.js 15 : on attend les paramètres
-    const resolvedParams = await params;
-    const id = resolvedParams.id;
-    
-    // On récupère les nouvelles données envoyées par le formulaire
-    const data = await request.json();
+// Empêche Next.js de mettre cette route en cache de façon agressive
+export const dynamic = 'force-dynamic'; 
 
-    // On met à jour le document dans MongoDB
-    const updatedGame = await Game.findByIdAndUpdate(id, data, {
-      new: true, // Demande à Mongoose de nous renvoyer le jeu mis à jour (et non l'ancien)
-      runValidators: true, // Force Mongoose à revérifier les règles (ex: pas de titre vide)
-    });
-
-    if (!updatedGame) {
-      return NextResponse.json({ error: "Jeu introuvable" }, { status: 404 });
-    }
-
-    return NextResponse.json(updatedGame, { status: 200 });
-
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour :", error);
-    return NextResponse.json({ error: "Erreur serveur lors de la modification" }, { status: 500 });
-  }
-}
-
-// Méthode pour LIRE les données d'un seul jeu (pour pré-remplir le formulaire)
+// ==========================================
+// GET : Récupérer UN jeu spécifique par son ID
+// ==========================================
 export async function GET(request, { params }) {
   try {
     await connectToDatabase();
     
     const resolvedParams = await params;
-    const id = resolvedParams.id;
+    const { id } = resolvedParams;
 
-    const game = await Game.findById(id).lean();
+    // 1. On peuple le jeu de base (C'est ICI que l'ID se transforme en objet complet)
+    const game = await Game.findById(id).populate('baseGame').lean();
 
     if (!game) {
-      return NextResponse.json({ error: "Jeu introuvable" }, { status: 404 });
+      return NextResponse.json({ message: "Jeu non trouvé" }, { status: 404 });
     }
 
+    // 2. Recherche inverse : On cherche les extensions liées
+    const extensions = await Game.find({ baseGame: id })
+                                 .select('title boxImage isExtension')
+                                 .lean();
+
+    game.extensions = extensions;
+
     return NextResponse.json(game, { status: 200 });
+    
   } catch (error) {
-    console.error("Erreur de récupération :", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    console.error("Erreur GET jeu :", error);
+    return NextResponse.json({ error: "Impossible de récupérer les informations" }, { status: 500 });
   }
 }
 
-// Méthode pour SUPPRIMER un jeu
+// ==========================================
+// PUT : Modifier un jeu
+// ==========================================
+export async function PUT(request, { params }) {
+  try {
+    await connectToDatabase();
+    
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
+    const data = await request.json();
+
+    const updatedGame = await Game.findByIdAndUpdate(id, data, { new: true });
+    
+    return NextResponse.json(updatedGame, { status: 200 });
+  } catch (error) {
+    console.error("Erreur PUT jeu :", error);
+    return NextResponse.json({ error: "Erreur lors de la mise à jour" }, { status: 500 });
+  }
+}
+
+// ==========================================
+// DELETE : Supprimer un jeu
+// ==========================================
 export async function DELETE(request, { params }) {
   try {
     await connectToDatabase();
     
     const resolvedParams = await params;
-    const id = resolvedParams.id;
+    const { id } = resolvedParams;
 
-    const deletedGame = await Game.findByIdAndDelete(id);
-
-    if (!deletedGame) {
-      return NextResponse.json({ error: "Jeu introuvable" }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: "Jeu supprimé avec succès" }, { status: 200 });
+    await Game.findByIdAndDelete(id);
+    
+    return NextResponse.json({ message: "Jeu supprimé" }, { status: 200 });
   } catch (error) {
-    console.error("Erreur lors de la suppression :", error);
-    return NextResponse.json({ error: "Erreur serveur lors de la suppression" }, { status: 500 });
+    console.error("Erreur DELETE jeu :", error);
+    return NextResponse.json({ error: "Erreur lors de la suppression" }, { status: 500 });
   }
 }
