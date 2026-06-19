@@ -299,30 +299,38 @@ export default function EditGamePage() {
           </div>
         </div>
 
-{/* Actions de fin de formulaire */}
-        <div className="flex justify-end items-center gap-4 pt-6 border-t border-gray-200">
+        {/* Zone des boutons d'action en bas du formulaire */}
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-between items-center gap-4 pt-6 border-t border-gray-200">
           
-          {/* Bouton Annuler */}
+          {/* Bouton Annuler (Se place tout en bas de la pile sur mobile, à gauche sur PC) */}
           <button 
             type="button" 
             onClick={() => router.back()} 
-            className="px-4 py-2 text-gray-600 hover:text-gray-800 hover:underline font-medium transition-colors"
+            className="w-full sm:w-auto text-center px-4 py-2.5 text-gray-600 hover:text-gray-800 hover:underline font-medium transition-colors"
           >
             Annuler
           </button>
 
-          {/* Bouton de suppression */}
-          <DeleteGameButton id={id} title={formData.title} />
+          {/* Groupe d'actions principales (Se place en haut de la pile sur mobile, à droite sur PC) */}
+          <div className="flex flex-col-reverse sm:flex-row w-full sm:w-auto gap-3">
+            
+            {/* Conteneur pour le bouton de suppression (Enforce la pleine largeur sur mobile) */}
+            <div className="w-full sm:w-auto [&_button]:w-full [&_a]:w-full">
+              <DeleteGameButton id={id} title={formData.title} />
+            </div>
 
-          {/* Bouton de sauvegarde */}
-          <button 
-            type="submit" 
-            disabled={isSubmitting} 
-            className={`px-6 py-3 rounded-md text-white font-medium ${isSubmitting ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"} transition-colors shadow-sm`}
-          >
-            {isSubmitting ? "Enregistrement..." : "Mettre à jour la fiche"}
-          </button>
-          
+            {/* Bouton de sauvegarde */}
+            <button 
+              type="submit" 
+              disabled={isSubmitting} 
+              className={`w-full sm:w-auto px-6 py-2.5 rounded-md text-white font-medium transition-colors shadow-sm ${
+                isSubmitting ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              {isSubmitting ? "Enregistrement..." : "Mettre à jour la fiche"}
+            </button>
+            
+          </div>
         </div>
 
 
