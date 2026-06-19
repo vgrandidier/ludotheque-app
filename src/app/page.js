@@ -148,7 +148,7 @@ export default async function HomePage({ searchParams }) {
                 <div className="flex justify-between items-center text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100 text-center ">
                   <div className="flex flex-col items-center">
                     <span className="material-icons text-[#679BBC] mb-1">face</span>
-                    <span><span className="font-semibold text-gray-800">{game.minAge}</span>+ ans</span>
+                    <span><span className="font-semibold text-gray-800">{game.minAge}</span>+</span>
                   </div>
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
                     <span className="material-icons text-[#679BBC] mb-1">group</span>
