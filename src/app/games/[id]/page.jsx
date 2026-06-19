@@ -83,8 +83,8 @@ export default async function GameDetailsPage({ params }) {
 
         </div>
 
-        {/* Bloc des prix (Aligné à droite) */}
-          <div className="flex flex-row flex-wrap items-center gap-3 mt-2">
+        {/* Bloc des prix (Forcé en 2 colonnes sur tous les écrans) */}
+          <div className="grid grid-cols-2 gap-3 mt-4 w-full md:w-max">
             
             {/* Bloc Occasion (Ne s'affiche que si un prix min ou max est renseigné) */}
             {(game.usedPriceMin || game.usedPriceMax) && (
@@ -247,24 +247,28 @@ export default async function GameDetailsPage({ params }) {
                     const isBestPrice = Number(seller.price) === actualLowestPrice;
 
                     return (
-                      <div 
-                        key={index} 
-                        className={`flex items-center justify-between p-4 rounded-lg border transition-colors ${
-                          isBestPrice ? "bg-green-50 border-green-400" : "bg-white border-gray-200"
-                        }`}
-                      >
-                        {/* Colonne de gauche : Nom et Badge */}
+                    <div 
+                      key={index} 
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border gap-3 transition-colors ${
+                        isBestPrice ? "bg-green-50 border-green-400" : "bg-white border-gray-200"
+                      }`}
+                    >
+                      {/* LIGNE 1 (Mobile) / GAUCHE (Desktop) : Infos du vendeur */}
+                      <div className="flex justify-between items-start w-full sm:w-auto sm:flex-1">
+                        
+                        {/* Nom et Badges */}
                         <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold text-gray-800">{seller.name}</span>
                             
                             {/* Badge de type */}
                             {seller.type && seller.type.toLowerCase().includes('marketplace') ? (
-                              <span className="text-[14px] font-bold tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded-sm border border-gray-200 flex items-center gap-1 w-max">
-                                <span className="material-icons text-[14px]">shopping_cart</span> <span className="font-bold text-gray-800">{seller.name}</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wide bg-gray-100 text-gray-500 px-2 py-0.5 rounded-sm border border-gray-200 flex items-center gap-1 w-max">
+                                <span className="material-icons text-[14px]">shopping_cart</span> Marketplace
                               </span>
                             ) : seller.type ? (
-                              <span className="text-[14px] font-bold tracking-wide bg-purple-50 text-purple-700 px-2 py-0.5 rounded-sm border border-purple-200 flex items-center gap-1 w-max">
-                                <span className="material-icons text-[14px]">casino</span> <span className="font-bold text-purple-800">{seller.name}</span>
+                              <span className="text-[10px] font-bold uppercase tracking-wide bg-purple-50 text-purple-700 px-2 py-0.5 rounded-sm border border-purple-200 flex items-center gap-1 w-max">
+                                <span className="material-icons text-[14px]">casino</span> Boutique spécialisée
                               </span>
                             ) : null}
                           </div>
@@ -277,23 +281,31 @@ export default async function GameDetailsPage({ params }) {
                           )}
                         </div>
 
-                        {/* Colonne de droite : Prix et Bouton */}
-                        <div className="flex items-center gap-4">
-                          <span className="text-lg font-bold text-gray-900">
-                            {seller.price} €
-                          </span>
-                          
-                          <a 
-                            href={seller.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-md transition-colors shadow-sm"
-                          >
-                            Voir l'offre
-                          </a>
-                        </div>
+                        {/* Prix Mobile (Aligné à droite du nom, caché sur Desktop) */}
+                        <span className="text-lg font-bold text-gray-900 whitespace-nowrap sm:hidden mt-0.5">
+                          {seller.price} €
+                        </span>
                       </div>
-                    );
+
+                      {/* LIGNE 2 (Mobile) / DROITE (Desktop) : Bouton (et prix Desktop) */}
+                      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto mt-2 sm:mt-0">
+                        
+                        {/* Prix Desktop (Caché sur Mobile pour ne pas l'afficher en double) */}
+                        <span className="hidden sm:block text-lg font-bold text-gray-900 whitespace-nowrap">
+                          {seller.price} €
+                        </span>
+                        
+                        <a 
+                          href={seller.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="w-full sm:w-auto text-center bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2.5 rounded-md transition-colors shadow-sm"
+                        >
+                          Voir l'offre
+                        </a>
+                      </div>
+                    </div>
+                  );
                   });
                 })()}
               </div>
