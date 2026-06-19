@@ -341,7 +341,7 @@ export default function EditGamePage() {
         {/* --- SECTION 6 : Médias & Récompenses --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Colonne Médias */}
+          {/* === COLONNE GAUCHE : Médias === */}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Lien YouTube</label>
@@ -386,49 +386,71 @@ export default function EditGamePage() {
             </div>
           </div>
 
-          {/* Colonne Récompenses */}
-          <div className="space-y-4 p-4 border border-gray-200 rounded-md h-min">
-            <h3 className="font-medium text-gray-800 border-b pb-2">Nominations & Prix</h3>
+          {/* === COLONNE DROITE : Récompenses & Liens annexes === */}
+          <div className="space-y-6">
             
-            {/* As d'Or */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <span className="text-sm font-medium w-32">As d'Or</span>
-              <select 
-                name="status" 
-                value={formData.asDor?.status || "aucun"} 
-                onChange={(e) => handleNestedChange(e, 'asDor')} 
-                className="border rounded p-1.5 text-sm flex-grow"
-              >
-                <option value="aucun">Aucun</option>
-                <option value="recommandé">Recommandé</option>
-                <option value="nominé">Nominé</option>
-                <option value="vainqueur">Vainqueur</option>
-              </select>
-              {formData.asDor?.status && formData.asDor.status !== "aucun" && (
-                <input type="number" name="year" placeholder="Année" value={formData.asDor?.year || ""} onChange={(e) => handleNestedChange(e, 'asDor')} className="border rounded p-1.5 text-sm w-24" />
-              )}
+            {/* Bloc Nominations & Prix */}
+            <div className="space-y-4 p-4 border border-gray-200 rounded-md h-min bg-white">
+              <h3 className="font-medium text-gray-800 border-b pb-2">Nominations & Prix</h3>
+              
+              {/* As d'Or */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <span className="text-sm font-medium w-32">As d'Or</span>
+                <select 
+                  name="status" 
+                  value={formData.asDor?.status || "aucun"} 
+                  onChange={(e) => handleNestedChange(e, 'asDor')} 
+                  className="border rounded p-1.5 text-sm flex-grow"
+                >
+                  <option value="aucun">Aucun</option>
+                  <option value="recommandé">Recommandé</option>
+                  <option value="nominé">Nominé</option>
+                  <option value="vainqueur">Vainqueur</option>
+                </select>
+                {formData.asDor?.status && formData.asDor.status !== "aucun" && (
+                  <input type="number" name="year" placeholder="Année" value={formData.asDor?.year || ""} onChange={(e) => handleNestedChange(e, 'asDor')} className="border rounded p-1.5 text-sm w-24" />
+                )}
+              </div>
+
+              {/* Spiel des Jahres */}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
+                <span className="text-sm font-medium w-32">Spiel d. Jahres</span>
+                <select 
+                  name="status" 
+                  value={formData.spielDesJahres?.status || "aucun"} 
+                  onChange={(e) => handleNestedChange(e, 'spielDesJahres')} 
+                  className="border rounded p-1.5 text-sm flex-grow"
+                >
+                  <option value="aucun">Aucun</option>
+                  <option value="recommandé">Recommandé</option>
+                  <option value="nominé">Nominé</option>
+                  <option value="vainqueur">Vainqueur</option>
+                </select>
+                {formData.spielDesJahres?.status && formData.spielDesJahres.status !== "aucun" && (
+                  <input type="number" name="year" placeholder="Année" value={formData.spielDesJahres?.year || ""} onChange={(e) => handleNestedChange(e, 'spielDesJahres')} className="border rounded p-1.5 text-sm w-24" />
+                )}
+              </div>
             </div>
 
-            {/* Spiel des Jahres */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-3">
-              <span className="text-sm font-medium w-32">Spiel d. Jahres</span>
-              <select 
-                name="status" 
-                value={formData.spielDesJahres?.status || "aucun"} 
-                onChange={(e) => handleNestedChange(e, 'spielDesJahres')} 
-                className="border rounded p-1.5 text-sm flex-grow"
-              >
-                <option value="aucun">Aucun</option>
-                <option value="recommandé">Recommandé</option>
-                <option value="nominé">Nominé</option>
-                <option value="vainqueur">Vainqueur</option>
-              </select>
-              {formData.spielDesJahres?.status && formData.spielDesJahres.status !== "aucun" && (
-                <input type="number" name="year" placeholder="Année" value={formData.spielDesJahres?.year || ""} onChange={(e) => handleNestedChange(e, 'spielDesJahres')} className="border rounded p-1.5 text-sm w-24" />
-              )}
+            {/* Bloc Board Game Arena */}
+            <div className="bg-white p-4 border border-gray-200 rounded-md shadow-sm">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Lien Board Game Arena (Optionnel)
+              </label>
+              <p className="text-xs text-gray-500 mb-3">
+                Ajoute l'URL de la page du jeu sur BGA pour intégrer un bouton "Jouer en ligne".
+              </p>
+              <input
+                type="url"
+                value={formData.bgaUrl || ""}
+                onChange={(e) => setFormData({ ...formData, bgaUrl: e.target.value })}
+                placeholder="https://boardgamearena.com/gamepanel?game=7wonders"
+                className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
             </div>
+
           </div>
-
+          
         </div>
 
 {/* Boutons de validation en bas */}

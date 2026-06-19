@@ -116,6 +116,19 @@ export default async function GameDetailsPage({ params }) {
 {/* Colonne de gauche : Récompenses, Images et Vidéo */}
         <div className="lg:col-span-1 space-y-6">
           
+          {/* Bouton Board Game Arena (Affiché uniquement si l'URL est renseignée) */}
+            {game.bgaUrl && (
+              <a
+                href={game.bgaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-3 bg-[#1b2836] hover:bg-[#2a3b4c] text-white text-sm font-medium px-4 py-3.5 rounded-lg transition-colors shadow-sm w-full mb-6"
+              >
+                <span className="material-icons text-[22px] text-[#66b2ff]">gamepad</span>
+                Jouer sur Board Game Arena
+              </a>
+            )}
+
           {/* Récompenses (Déplacé tout en haut) */}
           {((game.asDor?.status && game.asDor.status !== 'aucun') || (game.spielDesJahres?.status && game.spielDesJahres.status !== 'aucun')) && (
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">

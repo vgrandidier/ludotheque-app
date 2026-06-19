@@ -40,6 +40,7 @@ const GameSchema = new mongoose.Schema({
   usedPriceMax: { type: Number }, // Prix maximum en occasion
   sellers: [SellerSchema],                               // Champ 11
   youtubeUrl: { type: String, trim: true },              // Champ 12
+  bgaUrl: { type: String, trim: true },                  // Champ 12
   boxImage: { type: String, required: true },            // Champ 13 (URL Cloudinary)
   boardImage: { type: String, required: true },          // Champ 14 (URL Cloudinary)
   mechanics: [{ type: String, trim: true }],             // Champ 15
