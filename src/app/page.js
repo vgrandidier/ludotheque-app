@@ -95,14 +95,25 @@ export default async function HomePage({ searchParams }) {
             >
               
               {/* Image de la boîte */}
+              {/* Image de la boîte avec ses indicateurs (BGA & Extension) */}
               {game.boxImage && (
                 <div className="relative bg-white h-56 flex items-center justify-center p-4 border-b border-b-gray-100">
                   <img src={game.boxImage} alt={game.title} className="max-h-full max-w-full object-contain rounded" />
                   
-                  {/* Indicateur Board Game Arena (Image officielle) */}
+                  {/* Indicateur Extension (En haut à gauche) */}
+                  {game.isExtension && (
+                    <div 
+                      className="absolute bottom-3 left-3 w-8 h-8 bg-white text-cyan-600 overflow-hidden flex items-center justify-center  select-none"
+                      title="Ceci est une extension"
+                    >
+                      <span className="material-icons text-[18px]">extension</span>
+                    </div>
+                  )}
+
+                  {/* Indicateur Board Game Arena (En bas à droite) */}
                   {game.bgaUrl && (
                     <div 
-                      className="absolute bottom-3 right-3 w-8 h-8 bg-white rounded-full shadow-md overflow-hidden border border-gray-200"
+                      className="absolute bottom-3 right-3 w-8 h-8 bg-white rounded-full shadow-md overflow-hidden border border-gray-200 select-none"
                       title="Jouable sur Board Game Arena"
                     >
                       <img 
@@ -143,7 +154,7 @@ export default async function HomePage({ searchParams }) {
                 </div>
 
                 <h2 className="text-xl font-bold mb-4 text-gray-800 line-clamp-1">{game.title}</h2>
-                
+
                 {/* Ligne des Caractéristiques avec Material Icons */}
                 <div className="flex justify-between items-center text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100 text-center ">
                   <div className="flex flex-col items-center">

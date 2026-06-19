@@ -48,7 +48,7 @@ export default async function GameDetailsPage({ params }) {
       {/* En-tête du jeu */}
       <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <div className="mb-2">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             {game.label && (
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-sm w-max ${
               game.label === 'Coup de coeur' || game.label === 'Coup de Coeur' ? 'bg-[#FB862C] text-white' :
@@ -58,7 +58,14 @@ export default async function GameDetailsPage({ params }) {
             }`}>
               {game.label}
             </span>
-          )}
+            )}
+            {/* Badge Extension (Hauteur ajustée) */}
+            {game.isExtension && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide bg-cyan-200 text-cyan-600 px-2 py-0.5 rounded border border-cyan-400">
+                <span className="material-icons text-[14px]">extension</span> 
+                Extension du jeu
+              </span>
+            )}
           </div>
           <h1 className="text-4xl font-bold text-gray-800">{game.title}</h1>
           {/* Ligne des statistiques */}

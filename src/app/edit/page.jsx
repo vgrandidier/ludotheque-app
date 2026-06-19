@@ -191,6 +191,22 @@ export default function EditGamePage() {
           </div>
         </div>
 
+        {/* Option Extension */}
+        <div className="flex items-center gap-3 bg-gray-50 p-3 border border-gray-200 rounded-md shadow-sm mb-4">
+          <input
+            type="checkbox"
+            id="isExtension"
+            name="isExtension"
+            checked={formData.isExtension || false}
+            onChange={(e) => setFormData({ ...formData, isExtension: e.target.checked })}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+          />
+          <label htmlFor="isExtension" className="text-sm font-semibold text-gray-700 cursor-pointer select-none flex items-center gap-1.5">
+            <span className="material-icons text-gray-500 text-lg">extension</span>
+            Cette fiche concerne une extension
+          </label>
+        </div>
+
         {/* --- SECTION 2 : Caractéristiques techniques --- */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-4 bg-gray-50 rounded-md border border-gray-200">
           <div>

@@ -41,6 +41,7 @@ const GameSchema = new mongoose.Schema({
   sellers: [SellerSchema],                               // Champ 11
   youtubeUrl: { type: String, trim: true },              // Champ 12
   bgaUrl: { type: String, trim: true },                  // Champ 12
+  isExtension: { type: Boolean, default: false },
   boxImage: { type: String, required: true },            // Champ 13 (URL Cloudinary)
   boardImage: { type: String, required: true },          // Champ 14 (URL Cloudinary)
   mechanics: [{ type: String, trim: true }],             // Champ 15

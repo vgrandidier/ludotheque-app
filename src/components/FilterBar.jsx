@@ -69,7 +69,7 @@ export default function FilterBar({ uniqueMechanics }) {
         {/* 3. Filtre par Mécanique (Dynamique !) */}
         <div>
           <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-            <span className="material-icons text-base">extension</span> Mécaniques
+            <span className="material-icons text-base">settings</span> Mécaniques
           </label>
           <select
             value={currentMechanic}
