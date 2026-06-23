@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import MechanicsManager from "@/components/MechanicsManager";
 import SellerManager from "@/components/SellerManager";
@@ -131,6 +131,11 @@ export default function EditGamePage() {
         ...formData,
         lowestPrice: calculatedLowestPrice
       };
+
+      // 🧹 3. NETTOYAGE FANTÔME : On casse le lien si la case est décochée
+      if (!dataToSend.isExtension) {
+        dataToSend.baseGame = null;
+      }
 
       // 3. On envoie dataToSend au lieu de formData
       const res = await fetch(`/api/games/${id}`, {

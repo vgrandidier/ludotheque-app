@@ -171,6 +171,31 @@ export default async function GameDetailsPage({ params }) {
             </div>
           )}
 
+          {game.mechanics && game.mechanics.length > 0 && (
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">Mécaniques de jeu</h3>
+              <div className="flex flex-wrap gap-2">
+                      {game.mechanics.slice(0, 3).map((mech, index) => {
+                        // On vérifie si la mécanique est "Enfants" (en ignorant la casse au cas où)
+                        const isEnfants = mech.toLowerCase() === 'enfants';
+                        
+                        return (
+                          <span 
+                            key={index} 
+                            className={`px-2.5 py-1 rounded text-xs font-medium border ${
+                              isEnfants 
+                                ? 'bg-[#A7C957] text-white border-[#A7C957]' 
+                                : 'bg-gray-200 text-gray-700 border-gray-200'
+                            }`}
+                          >
+                            {mech}
+                          </span>
+                        );
+                      })}
+                    </div>
+            </div>
+          )}
+
           {/* Image de la boîte */}
           {game.boxImage && (
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
@@ -187,8 +212,56 @@ export default async function GameDetailsPage({ params }) {
             </div>
           )}
 
+          {/* === ENCART STATISTIQUES BGG === */}
+          {game.bggId && game.bggStats && (game.bggStats.averageRating > 0 || game.bggStats.weight > 0) && (
+            <div className="mt-6 bg-[#2a2a35] text-white p-5 rounded-lg shadow-md border border-[#3f3a60]">
+              
+              {/* En-tête BGG */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <span className="material-icons text-orange-500">assessment</span>
+                  BoardGameGeek
+                </h3>
+                <a 
+                  href={`https://boardgamegeek.com/boardgame/${game.bggId}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition-colors flex items-center gap-1"
+                >
+                  Voir la fiche officielle <span className="material-icons text-[14px]">open_in_new</span>
+                </a>
+              </div>
+              
+              {/* Les deux compteurs */}
+              <div className="flex gap-4 justify-around items-center">
+                
+                {/* Note moyenne */}
+                <div className="text-center flex-1">
+                  <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Note moyenne</div>
+                  <div className="text-3xl font-black text-amber-400 flex items-baseline justify-center gap-1">
+                    {game.bggStats.averageRating > 0 ? game.bggStats.averageRating.toFixed(1) : "-"}
+                    <span className="text-sm font-medium text-amber-400/50">/10</span>
+                  </div>
+                </div>
+                
+                {/* Séparateur vertical */}
+                <div className="w-px h-12 bg-white/10"></div>
+                
+                {/* Complexité (Weight) */}
+                <div className="text-center flex-1">
+                  <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Complexité</div>
+                  <div className="text-3xl font-black text-purple-400 flex items-baseline justify-center gap-1">
+                    {game.bggStats.weight > 0 ? game.bggStats.weight.toFixed(2) : "-"}
+                    <span className="text-sm font-medium text-purple-400/50">/5</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
           {/* Vidéo YouTube intégrée */}
-          {game.youtubeUrl && (
+          {/*{game.youtubeUrl && (
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
               <h3 className="font-semibold text-gray-800 border-b pb-2 mb-4">Vidéo explicative</h3>
               <iframe
@@ -204,7 +277,7 @@ export default async function GameDetailsPage({ params }) {
                 allowFullScreen
               ></iframe>
             </div>
-          )}
+          )}*/}
 
         </div>
 
@@ -235,7 +308,7 @@ export default async function GameDetailsPage({ params }) {
           </div>
 
           {/* Mécaniques */}
-          {game.mechanics && game.mechanics.length > 0 && (
+          {/*{game.mechanics && game.mechanics.length > 0 && (
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Mécaniques de jeu</h3>
               <div className="flex flex-wrap gap-2">
@@ -257,6 +330,24 @@ export default async function GameDetailsPage({ params }) {
                         );
                       })}
                     </div>
+            </div>
+          )}*/}
+
+          {game.youtubeUrl && (
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+              <h3 className="font-semibold text-gray-800 border-b pb-2 mb-4">Vidéo explicative</h3>
+              <iframe
+                src={
+                  game.youtubeUrl.includes("embed/") ? game.youtubeUrl
+                  : game.youtubeUrl.includes("youtu.be/") ? `https://www.youtube.com/embed/${game.youtubeUrl.split("youtu.be/")[1]?.split("?")[0]}`
+                  : game.youtubeUrl.includes("watch?v=") ? `https://www.youtube.com/embed/${game.youtubeUrl.split("watch?v=")[1]?.split("&")[0]}`
+                  : game.youtubeUrl
+                }
+                title={`Vidéo de ${game.title}`}
+                className="w-full aspect-video rounded-md shadow-sm"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
             </div>
           )}
 
@@ -355,7 +446,7 @@ export default async function GameDetailsPage({ params }) {
       {/* Section : Univers du jeu (Jeu de base & Extensions) */}
         {/* Condition : affiché uniquement s'il y a un lien de parenté */}
         {(game.baseGame || (game.extensions && game.extensions.length > 0)) && (
-          <div className="mt-12 pt-8 border-t border-gray-200">
+         <div className="mt-12 pt-8 p-4 rounded-lg shadow-sm border border-gray-200 bg-white" >
             <h3 className="text-xl font-bold text-gray-900 mb-6">Dans le même univers</h3>
 
             <div className="flex flex-wrap gap-6">

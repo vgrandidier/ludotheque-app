@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import SellerManager from "@/components/SellerManager";
 import MechanicsManager from "@/components/MechanicsManager";
@@ -9,6 +9,11 @@ export default function NewGamePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const boxImageRef = useRef(null);
+  const boardImageRef = useRef(null);
+  // NOUVEAU : États pour la recherche BGG
+  const [bggResults, setBggResults] = useState([]);
+  const [isSearchingBGG, setIsSearchingBGG] = useState(false);
 
   // 1. NOUVEAU : État pour stocker la liste de tous les jeux
   const [allGames, setAllGames] = useState([]);
@@ -35,7 +40,9 @@ export default function NewGamePage() {
     baseGame: null,
     usedPriceMin: "",
     usedPriceMax: "",
-    bgaUrl: ""
+    bgaUrl: "",
+    bggId: null,
+    bggStats: { averageRating: 0, weight: 0 }
   });
 
   // 3. NOUVEAU : Récupérer la liste complète des jeux au chargement de la page
@@ -81,8 +88,12 @@ export default function NewGamePage() {
     const file = e.target.files[0];
     if (!file) return;
 
+    setError(""); // On nettoie les anciens messages d'erreur
+
     try {
       const sigRes = await fetch("/api/upload/signature");
+      if (!sigRes.ok) throw new Error("Impossible de joindre le serveur de signature.");
+      
       const { signature, timestamp, folder } = await sigRes.json();
 
       const cloudData = new FormData();
@@ -99,10 +110,68 @@ export default function NewGamePage() {
       );
       
       const uploadData = await uploadRes.json();
+
+      // 🔴 NOUVELLE SÉCURITÉ : On vérifie si Cloudinary a refusé le fichier
+      if (!uploadRes.ok) {
+        console.error("Détail du refus Cloudinary :", uploadData);
+        throw new Error(uploadData.error?.message || "Refus de Cloudinary");
+      }
+
+      // Si tout va bien, on stocke l'URL et l'aperçu apparaît !
       setFormData((prev) => ({ ...prev, [fieldName]: uploadData.secure_url }));
+      
     } catch (err) {
-      console.error("Erreur d'upload :", err);
-      setError("Échec de l'envoi de l'image.");
+      console.error("Erreur d'upload interceptée :", err);
+      // On affiche l'erreur en rouge tout en bas du formulaire
+      setError(`Échec de l'envoi de l'image : ${err.message}`);
+    }
+  };
+
+// --- RECHERCHE BGG ---
+  const handleSearchBGG = async () => {
+    if (!formData.title) return;
+    setIsSearchingBGG(true);
+    try {
+      const res = await fetch(`/api/bgg/search?q=${encodeURIComponent(formData.title)}`);
+      if (res.ok) {
+        const data = await res.json();
+        // 🔴 AJOUTE CETTE LIGNE ICI POUR VOIR CE QUE LE SERVEUR TE RÉPOND :
+        console.log("Données reçues de BGG :", data);
+        setBggResults(data);
+      }
+    } catch (error) {
+      console.error("Erreur recherche BGG :", error);
+    } finally {
+      setIsSearchingBGG(false);
+    }
+  };
+
+  // --- IMPORT DEPUIS BGG ---
+  const handleImportBGG = async (bggId) => {
+    // On cache les résultats de recherche
+    setBggResults([]); 
+    
+    try {
+      const res = await fetch(`/api/bgg/${bggId}`);
+      if (res.ok) {
+        const bggData = await res.json();
+        
+        // On met à jour tout le formulaire d'un seul coup en gardant ce qui était déjà saisi
+        setFormData(prev => ({
+          ...prev,
+          title: bggData.title || prev.title,
+          minAge: bggData.minAge || prev.minAge,
+          duration: bggData.duration || prev.duration,
+          players: bggData.players || prev.players,
+          generalPresentation: bggData.generalPresentation || prev.generalPresentation,
+          // 🔴 NOUVEAUTÉ : On stocke l'ID et les stats
+          bggId: bggId,
+          bggStats: bggData.stats || prev.bggStats
+          // Optionnel : on peut même pré-remplir les URLs d'images si tu gères l'affichage externe !
+        }));
+      }
+    } catch (error) {
+      console.error("Erreur import BGG :", error);
     }
   };
 
@@ -112,11 +181,23 @@ export default function NewGamePage() {
     setIsSubmitting(true);
     setError(""); // On efface les anciennes erreurs au cas où
 
-    // 🛑 LA BARRIÈRE DE SÉCURITÉ : On vérifie les images
-    if (!formData.boxImage || !formData.boardImage) {
-      setError("⚠️ Veuillez uploader l'image de la boîte et l'image du plateau avant d'enregistrer.");
-      setIsSubmitting(false); // On débloque le bouton
-      return; // On annule tout, l'enregistrement s'arrête ici !
+// 🛑 NOUVELLE BARRIÈRE : On déclenche l'infobulle native
+    if (!formData.boxImage) {
+      boxImageRef.current.setCustomValidity("Veuillez uploader l'image de la boîte.");
+      boxImageRef.current.reportValidity(); // Fait apparaître l'infobulle
+      setIsSubmitting(false);
+      return;
+    } else {
+      boxImageRef.current.setCustomValidity(""); // On efface l'erreur si tout va bien
+    }
+
+    if (!formData.boardImage) {
+      boardImageRef.current.setCustomValidity("Veuillez uploader l'image du plateau.");
+      boardImageRef.current.reportValidity();
+      setIsSubmitting(false);
+      return;
+    } else {
+      boardImageRef.current.setCustomValidity("");
     }
     try {
       const validPrices = formData.sellers && formData.sellers.length > 0 
@@ -129,6 +210,11 @@ export default function NewGamePage() {
         ...formData,
         lowestPrice: calculatedLowestPrice
       };
+
+      // 🧹 3. NETTOYAGE FANTÔME : On casse le lien si la case est décochée
+      if (!dataToSend.isExtension) {
+        dataToSend.baseGame = null;
+      }
 
       const res = await fetch(`/api/games`, {
         method: "POST", 
@@ -157,26 +243,61 @@ export default function NewGamePage() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Ajouter un nouveau jeu</h1>
       </div>  
-      {error && (
-        <div className="bg-red-100 text-red-700 p-4 rounded-md mb-6">
-          {error}
-        </div>
-      )}
+
 
       <form onSubmit={handleSubmit} className="space-y-8 bg-white p-6 rounded-lg shadow-md">
         
         {/* --- SECTION 1 : Informations de base --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          {/* Bloc Titre avec recherche BGG intégrée */}
+          <div className="relative">
             <label className="block text-sm font-medium text-gray-700 mb-1">Titre du jeu</label>
-            <input
-              type="text"
-              name="title"
-              required
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                name="title"
+                required
+                value={formData.title}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                onClick={handleSearchBGG}
+                disabled={!formData.title || isSearchingBGG}
+                className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-300 transition-colors flex items-center gap-1 whitespace-nowrap text-sm"
+                title="Chercher sur BoardGameGeek"
+              >
+                {isSearchingBGG ? "..." : (
+                  <>
+                    <span className="material-icons text-sm">search</span>
+                    BGG
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Menu déroulant des résultats BGG */}
+            {bggResults.length > 0 && (
+              <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                <li className="px-3 py-1 bg-gray-100 text-xs text-gray-500 font-semibold flex justify-between">
+                  <span>Résultats BoardGameGeek</span>
+                  <button type="button" onClick={() => setBggResults([])} className="hover:text-red-500">Fermer</button>
+                </li>
+                {bggResults.map(game => (
+                  <li 
+                    key={game.id}
+                    onClick={() => handleImportBGG(game.id)}
+                    className="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 text-sm flex justify-between items-center"
+                  >
+                    <span className="font-medium text-gray-800">{game.title}</span>
+                    <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">
+                      {game.year} • {game.type === "Extension" ? "Ext." : "Jeu"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div>
@@ -414,7 +535,12 @@ export default function NewGamePage() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleImageUpload(e, "boxImage")}
+                ref={boxImageRef}
+                // 🔴 MODIFICATION ICI : On efface l'erreur native avant d'uploader
+                onChange={(e) => {
+                  if(boxImageRef.current) boxImageRef.current.setCustomValidity("");
+                  handleImageUpload(e, "boxImage");
+                }}
                 className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700"
               />
               {formData.boxImage && (
@@ -424,12 +550,17 @@ export default function NewGamePage() {
               )}
             </div>
 
-            <div className="p-4 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
+           <div className="p-4 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
               <label className="block text-sm font-medium text-gray-700 mb-2">Image du Plateau</label>
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleImageUpload(e, "boardImage")}
+                ref={boardImageRef}
+                // 🔴 MODIFICATION ICI AUSSI
+                onChange={(e) => {
+                  if(boardImageRef.current) boardImageRef.current.setCustomValidity("");
+                  handleImageUpload(e, "boardImage");
+                }}
                 className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700"
               />
               {formData.boardImage && (
@@ -506,6 +637,12 @@ export default function NewGamePage() {
           </div>
           
         </div>
+
+        {error && (
+          <div className="bg-red-100 text-red-700 p-4 rounded-md mb-6">
+            {error}
+          </div>
+        )}
 
         {/* Boutons de validation en bas */}
         <div className="flex justify-end items-center gap-4 pt-6 border-t border-gray-200">
