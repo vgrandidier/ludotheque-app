@@ -1,66 +1,141 @@
-import { useState } from "react";
-import { X } from "lucide-react";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 
 export default function MechanicsManager({ mechanics = [], onChange }) {
   const [inputValue, setInputValue] = useState("");
-
-  const handleKeyDown = (e) => {
-    // Si on appuie sur Entrée et que le champ n'est pas vide
-    if (e.key === "Enter" && inputValue.trim() !== "") {
-      e.preventDefault(); // Empêche le formulaire global de se soumettre
-      
-      const newMechanic = inputValue.trim();
-      
-      // On évite les doublons
-      if (!mechanics.includes(newMechanic)) {
-        onChange([...mechanics, newMechanic]);
+  const [availableMechanics, setAvailableMechanics] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  
+  // NOUVEAU : Récupérer toutes les mécaniques existantes au chargement
+  useEffect(() => {
+    const fetchMechanics = async () => {
+      try {
+        const res = await fetch("/api/mechanics");
+        if (res.ok) {
+          const data = await res.json();
+          setAvailableMechanics(data);
+        }
+      } catch (error) {
+        console.error("Erreur de chargement des mécaniques", error);
       }
-      
-      setInputValue(""); // On vide le champ après l'ajout
+    };
+    fetchMechanics();
+  }, []);
+
+  // NOUVEAU : Gérer la frappe au clavier et filtrer les suggestions
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setInputValue(value);
+
+    // Si on a tapé au moins 3 caractères
+    if (value.trim().length >= 3) {
+      const filtered = availableMechanics.filter((mech) => 
+        // Vérifie si la mécanique contient le texte (insensible à la casse)
+        mech.toLowerCase().includes(value.toLowerCase()) && 
+        // Ne propose pas une mécanique déjà sélectionnée
+        !mechanics.includes(mech)
+      );
+      setSuggestions(filtered);
+    } else {
+      setSuggestions([]); // On cache si moins de 3 caractères
     }
   };
 
-  const handleRemove = (mechanicToRemove) => {
-    const updatedMechanics = mechanics.filter(m => m !== mechanicToRemove);
-    onChange(updatedMechanics);
+  const handleAddMechanic = (e) => {
+    e.preventDefault();
+    addMechanic(inputValue);
+  };
+
+  // Fonction centrale pour ajouter la mécanique (depuis l'input ou les suggestions)
+  const addMechanic = (mechanicName) => {
+    const trimmed = mechanicName.trim();
+    if (trimmed && !mechanics.includes(trimmed)) {
+      onChange([...mechanics, trimmed]);
+    }
+    setInputValue("");
+    setSuggestions([]); // On referme le menu
+  };
+
+  const handleRemoveMechanic = (mechanicToRemove) => {
+    onChange(mechanics.filter((m) => m !== mechanicToRemove));
   };
 
   return (
-    <div className="border border-gray-200 p-4 rounded-md bg-gray-50">
-      <label className="block text-sm font-medium text-gray-800 mb-2">
-        Mécaniques du jeu
+    <div className="bg-white p-4 border border-gray-200 rounded-md shadow-sm">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        Mécaniques de jeu
       </label>
       
-      <input
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Taper une mécanique puis appuyer sur Entrée..."
-        className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-blue-500 mb-3"
-      />
-
-      {/* Zone d'affichage des tags */}
-      <div className="flex flex-wrap gap-2">
-        {mechanics.length === 0 && (
-          <span className="text-xs text-gray-500 italic">Aucune mécanique ajoutée.</span>
-        )}
+      {/* Zone de saisie avec le menu déroulant positionné en absolu */}
+      <div className="relative flex gap-2 mb-4">
+        <div className="flex-grow relative">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={handleInputChange}
+            // Permet d'ajouter avec la touche Entrée sans soumettre tout le formulaire
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addMechanic(inputValue);
+              }
+            }}
+            placeholder="Ex: Draft, Placement d'ouvriers..."
+            className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-blue-500"
+          />
+          
+          {/* Menu déroulant des suggestions */}
+          {suggestions.length > 0 && (
+            <ul className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
+              <li className="px-3 py-1 bg-gray-100 text-xs text-gray-500 font-semibold">
+                Mécaniques existantes
+              </li>
+              {suggestions.map((sugg, index) => (
+                <li
+                  key={index}
+                  onClick={() => addMechanic(sugg)}
+                  className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm border-b last:border-b-0"
+                >
+                  {sugg}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
         
-        {mechanics.map((mechanic, index) => (
-          <span 
-            key={index} 
-            className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full"
-          >
-            {mechanic}
-            <button
-              type="button"
-              onClick={() => handleRemove(mechanic)}
-              className="text-blue-500 hover:text-blue-900 focus:outline-none"
+        <button
+          type="button"
+          onClick={handleAddMechanic}
+          disabled={!inputValue.trim()}
+          className="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-900 disabled:bg-gray-300 transition-colors text-sm font-medium"
+        >
+          Ajouter
+        </button>
+      </div>
+
+      {/* Affichage des tags sélectionnés */}
+      <div className="flex flex-wrap gap-2">
+        {mechanics.length === 0 ? (
+          <span className="text-sm text-gray-400 italic">Aucune mécanique ajoutée</span>
+        ) : (
+          mechanics.map((mech, index) => (
+            <span
+              key={index}
+              className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
             >
-              <X size={14} />
-            </button>
-          </span>
-        ))}
+              {mech}
+              <button
+                type="button"
+                onClick={() => handleRemoveMechanic(mech)}
+                className="hover:text-red-600 focus:outline-none font-bold ml-1"
+                title="Supprimer"
+              >
+                &times;
+              </button>
+            </span>
+          ))
+        )}
       </div>
     </div>
   );
