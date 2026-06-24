@@ -41,14 +41,12 @@ const GameSchema = new mongoose.Schema({
   sellers: [SellerSchema],                               // Champ 11
   youtubeUrl: { type: String, trim: true },              // Champ 12
   bgaUrl: { type: String, trim: true },                  // Champ 12
-  // --- NOUVELLES DONNÉES BGG ---
-  bggId: { 
-    type: Number, 
-    default: null 
-  }, // Très utile pour ne pas le rechercher la prochaine fois
+// --- INFORMATIONS ÉDITORIALES & BGG ---
+  publisher: { type: String, default: "" },
+  year: { type: Number, default: null },
   bggStats: {
     averageRating: { type: Number, default: 0 },
-    weight: { type: Number, default: 0 } // La complexité sur 5
+    weight: { type: Number, default: 0 } // Complexité sur 5
   },
   isExtension: { type: Boolean, default: false },
   baseGame: { 

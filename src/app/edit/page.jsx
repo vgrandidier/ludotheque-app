@@ -11,9 +11,6 @@ export default function NewGamePage() {
   const [error, setError] = useState("");
   const boxImageRef = useRef(null);
   const boardImageRef = useRef(null);
-  // NOUVEAU : États pour la recherche BGG
-  const [bggResults, setBggResults] = useState([]);
-  const [isSearchingBGG, setIsSearchingBGG] = useState(false);
 
   // 1. NOUVEAU : État pour stocker la liste de tous les jeux
   const [allGames, setAllGames] = useState([]);
@@ -41,7 +38,8 @@ export default function NewGamePage() {
     usedPriceMin: "",
     usedPriceMax: "",
     bgaUrl: "",
-    bggId: null,
+    publisher: "",
+    year: "",
     bggStats: { averageRating: 0, weight: 0 }
   });
 
@@ -124,54 +122,6 @@ export default function NewGamePage() {
       console.error("Erreur d'upload interceptée :", err);
       // On affiche l'erreur en rouge tout en bas du formulaire
       setError(`Échec de l'envoi de l'image : ${err.message}`);
-    }
-  };
-
-// --- RECHERCHE BGG ---
-  const handleSearchBGG = async () => {
-    if (!formData.title) return;
-    setIsSearchingBGG(true);
-    try {
-      const res = await fetch(`/api/bgg/search?q=${encodeURIComponent(formData.title)}`);
-      if (res.ok) {
-        const data = await res.json();
-        // 🔴 AJOUTE CETTE LIGNE ICI POUR VOIR CE QUE LE SERVEUR TE RÉPOND :
-        console.log("Données reçues de BGG :", data);
-        setBggResults(data);
-      }
-    } catch (error) {
-      console.error("Erreur recherche BGG :", error);
-    } finally {
-      setIsSearchingBGG(false);
-    }
-  };
-
-  // --- IMPORT DEPUIS BGG ---
-  const handleImportBGG = async (bggId) => {
-    // On cache les résultats de recherche
-    setBggResults([]); 
-    
-    try {
-      const res = await fetch(`/api/bgg/${bggId}`);
-      if (res.ok) {
-        const bggData = await res.json();
-        
-        // On met à jour tout le formulaire d'un seul coup en gardant ce qui était déjà saisi
-        setFormData(prev => ({
-          ...prev,
-          title: bggData.title || prev.title,
-          minAge: bggData.minAge || prev.minAge,
-          duration: bggData.duration || prev.duration,
-          players: bggData.players || prev.players,
-          generalPresentation: bggData.generalPresentation || prev.generalPresentation,
-          // 🔴 NOUVEAUTÉ : On stocke l'ID et les stats
-          bggId: bggId,
-          bggStats: bggData.stats || prev.bggStats
-          // Optionnel : on peut même pré-remplir les URLs d'images si tu gères l'affichage externe !
-        }));
-      }
-    } catch (error) {
-      console.error("Erreur import BGG :", error);
     }
   };
 
@@ -261,43 +211,8 @@ export default function NewGamePage() {
                 onChange={handleChange}
                 className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500"
               />
-              <button
-                type="button"
-                onClick={handleSearchBGG}
-                disabled={!formData.title || isSearchingBGG}
-                className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 disabled:bg-blue-300 transition-colors flex items-center gap-1 whitespace-nowrap text-sm"
-                title="Chercher sur BoardGameGeek"
-              >
-                {isSearchingBGG ? "..." : (
-                  <>
-                    <span className="material-icons text-sm">search</span>
-                    BGG
-                  </>
-                )}
-              </button>
             </div>
 
-            {/* Menu déroulant des résultats BGG */}
-            {bggResults.length > 0 && (
-              <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                <li className="px-3 py-1 bg-gray-100 text-xs text-gray-500 font-semibold flex justify-between">
-                  <span>Résultats BoardGameGeek</span>
-                  <button type="button" onClick={() => setBggResults([])} className="hover:text-red-500">Fermer</button>
-                </li>
-                {bggResults.map(game => (
-                  <li 
-                    key={game.id}
-                    onClick={() => handleImportBGG(game.id)}
-                    className="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b last:border-b-0 text-sm flex justify-between items-center"
-                  >
-                    <span className="font-medium text-gray-800">{game.title}</span>
-                    <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">
-                      {game.year} • {game.type === "Extension" ? "Ext." : "Jeu"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
 
           <div>
@@ -412,6 +327,58 @@ export default function NewGamePage() {
               value={formData.duration}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* --- SECTION : Édition & BGG --- */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-4 bg-purple-50 rounded-md border border-purple-200">
+          <div>
+            <label className="block text-sm font-medium text-purple-900 mb-1">Éditeur</label>
+            <input
+              type="text"
+              name="publisher"
+              value={formData.publisher}
+              onChange={handleChange}
+              placeholder="Ex: Repos Production"
+              className="w-full border border-purple-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-purple-900 mb-1">Année d'édition</label>
+            <input
+              type="number"
+              name="year"
+              value={formData.year || ""}
+              onChange={handleChange}
+              placeholder="Ex: 2015"
+              className="w-full border border-purple-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-purple-900 mb-1">Note BGG (/10)</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="10"
+              name="averageRating"
+              value={formData.bggStats?.averageRating || ""}
+              onChange={(e) => handleNestedChange(e, 'bggStats')}
+              className="w-full border border-purple-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-purple-900 mb-1">Complexité (/5)</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="5"
+              name="weight"
+              value={formData.bggStats?.weight || ""}
+              onChange={(e) => handleNestedChange(e, 'bggStats')}
+              className="w-full border border-purple-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500"
             />
           </div>
         </div>

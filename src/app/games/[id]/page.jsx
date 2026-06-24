@@ -2,7 +2,7 @@ import connectToDatabase from "@/lib/mongodb";
 import Game from "@/models/Game";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
+import ImageGallery from "@/components/ImageGallery";
 
 export default async function GameDetailsPage({ params }) {
   // 1. On "attend" la promesse des paramètres (Nouveauté Next.js 15)
@@ -39,6 +39,21 @@ export default async function GameDetailsPage({ params }) {
     console.error("Erreur lors de la récupération des extensions :", error);
     game.extensions = []; // Sécurité : on met un tableau vide si ça plante
   }
+
+  // Fonction pour générer les 5 étoiles de complexité
+  const renderComplexityStars = (weight) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (weight >= i) {
+        stars.push(<span key={i} className="material-icons text-sky-400">star</span>);
+      } else if (weight >= i - 0.5) {
+        stars.push(<span key={i} className="material-icons text-sky-400">star_half</span>);
+      } else {
+        stars.push(<span key={i} className="material-icons text-sky-400 opacity-30">star_border</span>);
+      }
+    }
+    return <div className="flex justify-end mt-1">{stars}</div>; // Alignement à droite
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -196,63 +211,45 @@ export default async function GameDetailsPage({ params }) {
             </div>
           )}
 
-          {/* Image de la boîte */}
-          {game.boxImage && (
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="font-semibold text-gray-800 border-b pb-2 mb-4">Boîte du jeu</h3>
-              <img src={game.boxImage} alt="Boîte" className="w-full rounded object-contain max-h-80" />
-            </div>
-          )}
+          {/* Image de la boîte et du plateau */}
+          <ImageGallery boxImage={game.boxImage} boardImage={game.boardImage} />
 
-          {/* Image du plateau */}
-          {game.boardImage && (
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-              <h3 className="font-semibold text-gray-800 border-b pb-2 mb-4">Aperçu du plateau</h3>
-              <img src={game.boardImage} alt="Plateau" className="w-full rounded object-contain max-h-80" />
-            </div>
-          )}
-
-          {/* === ENCART STATISTIQUES BGG === */}
-          {game.bggId && game.bggStats && (game.bggStats.averageRating > 0 || game.bggStats.weight > 0) && (
+          {/* === ENCART INFORMATIONS & BGG === */}
+          {(game.publisher || game.year || (game.bggStats && (game.bggStats.averageRating > 0 || game.bggStats.weight > 0))) && (
             <div className="mt-6 bg-[#2a2a35] text-white p-5 rounded-lg shadow-md border border-[#3f3a60]">
               
-              {/* En-tête BGG */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4">
-                <h3 className="font-bold text-lg flex items-center gap-2">
-                  <span className="material-icons text-orange-500">assessment</span>
-                  BoardGameGeek
-                </h3>
-                <a 
-                  href={`https://boardgamegeek.com/boardgame/${game.bggId}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded transition-colors flex items-center gap-1"
-                >
-                  Voir la fiche officielle <span className="material-icons text-[14px]">open_in_new</span>
-                </a>
-              </div>
+              <h3 className="font-bold text-lg border-b border-white/10 pb-3 mb-4 flex items-center gap-2">
+                À propos du jeu
+              </h3>
               
-              {/* Les deux compteurs */}
-              <div className="flex gap-4 justify-around items-center">
+              {/* Disposition en liste verticale */}
+              <div className="flex flex-col gap-4">
                 
-                {/* Note moyenne */}
-                <div className="text-center flex-1">
-                  <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Note moyenne</div>
-                  <div className="text-3xl font-black text-amber-400 flex items-baseline justify-center gap-1">
-                    {game.bggStats.averageRating > 0 ? game.bggStats.averageRating.toFixed(1) : "-"}
-                    <span className="text-sm font-medium text-amber-400/50">/10</span>
+                {/* Ligne 1 : Éditeur / Année */}
+                <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                  <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Édition</span>
+                  <div className="text-right">
+                    <div className="text-base font-semibold text-white">
+                      {game.publisher || "Éditeur inconnu"}
+                    </div>
+                    {game.year && <div className="text-sm text-gray-400">{game.year}</div>}
                   </div>
                 </div>
                 
-                {/* Séparateur vertical */}
-                <div className="w-px h-12 bg-white/10"></div>
+                {/* Ligne 2 : Note BGG */}
+                <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                  <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Note BGG</span>
+                  <div className="text-2xl font-black text-amber-400 flex items-baseline gap-1">
+                    {game.bggStats?.averageRating > 0 ? game.bggStats.averageRating.toFixed(1) : "-"}
+                    <span className="text-sm font-medium text-amber-400/50">/ 10</span>
+                  </div>
+                </div>
                 
-                {/* Complexité (Weight) */}
-                <div className="text-center flex-1">
-                  <div className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Complexité</div>
-                  <div className="text-3xl font-black text-purple-400 flex items-baseline justify-center gap-1">
-                    {game.bggStats.weight > 0 ? game.bggStats.weight.toFixed(2) : "-"}
-                    <span className="text-sm font-medium text-purple-400/50">/5</span>
+                {/* Ligne 3 : Complexité */}
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Complexité</span>
+                  <div className="text-right flex flex-col items-end">
+                    {game.bggStats?.weight > 0 && renderComplexityStars(game.bggStats.weight)}
                   </div>
                 </div>
 
@@ -446,7 +443,7 @@ export default async function GameDetailsPage({ params }) {
       {/* Section : Univers du jeu (Jeu de base & Extensions) */}
         {/* Condition : affiché uniquement s'il y a un lien de parenté */}
         {(game.baseGame || (game.extensions && game.extensions.length > 0)) && (
-         <div className="mt-12 pt-8 p-4 rounded-lg shadow-sm border border-gray-200 bg-white" >
+         <div className="mt-12 pt-8 p-4 rounded-lg " >
             <h3 className="text-xl font-bold text-gray-900 mb-6">Dans le même univers</h3>
 
             <div className="flex flex-wrap gap-6">

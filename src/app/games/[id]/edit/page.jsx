@@ -16,12 +16,30 @@ export default function EditGamePage() {
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    title: "", generalPresentation: "", rulesPresentation: "", materialPresentation: "", endGameConditions: "",
-    minAge: 8, players: { min: 1, max: 4 }, duration: 30, label: "Dans ma ludothèque",
-    youtubeUrl: "", boxImage: "", boardImage: "",
-    mechanics: [], sellers: [],
-    spielDesJahres: { isNominated: false, year: "" },
-    asDor: { isNominated: false, year: "" }
+    title: "",
+    generalPresentation: "",
+    rulesPresentation: "",
+    materialPresentation: "",
+    endGameConditions: "",
+    minAge: 8,
+    players: { min: 1, max: 4 },
+    duration: 30,
+    label: "Dans ma ludothèque", // Différence mineure : par défaut sur la ludothèque en édition
+    youtubeUrl: "",
+    boxImage: "",
+    boardImage: "",
+    mechanics: [], 
+    sellers: [],
+    spielDesJahres: { status: "aucun", year: "" }, // Corrigé !
+    asDor: { status: "aucun", year: "" },          // Corrigé !
+    isExtension: false,
+    baseGame: null,
+    usedPriceMin: "",
+    usedPriceMax: "",
+    bgaUrl: "",
+    publisher: "",
+    year: "",
+    bggStats: { averageRating: 0, weight: 0 }
   });
 
   const [allGames, setAllGames] = useState([]);
@@ -38,13 +56,15 @@ export default function EditGamePage() {
         const spielStatus = data.spielDesJahres?.status || (data.spielDesJahres?.isNominated ? "nominé" : "aucun");
         // On fusionne les données reçues avec notre format par défaut
         // (pour éviter les bugs si un vieux jeu n'a pas certains champs)
-        setFormData(prev => ({
-          ...prev,
-          ...data,
-          players: { ...prev.players, ...data.players },
-          asDor: { ...prev.asDor, ...data.asDor },
-          spielDesJahres: { ...prev.spielDesJahres, ...data.spielDesJahres }
-        }));
+        setFormData({
+            ...data,
+            players: data.players || { min: 1, max: 4 },
+            spielDesJahres: data.spielDesJahres || { status: "aucun", year: "" },
+            asDor: data.asDor || { status: "aucun", year: "" },
+            bggStats: data.bggStats || { averageRating: 0, weight: 0 },
+            mechanics: data.mechanics || [],
+            sellers: data.sellers || [],
+          });
       } catch (err) {
         setError(err.message);
       } finally {
@@ -264,6 +284,58 @@ export default function EditGamePage() {
           </div>
         </div>
 
+{/* --- SECTION : Édition & BGG --- */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-4 bg-purple-50 rounded-md border border-purple-200">
+          <div>
+            <label className="block text-sm font-medium text-purple-900 mb-1">Éditeur</label>
+            <input
+              type="text"
+              name="publisher"
+              value={formData.publisher}
+              onChange={handleChange}
+              placeholder="Ex: Repos Production"
+              className="w-full border border-purple-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-purple-900 mb-1">Année d'édition</label>
+            <input
+              type="number"
+              name="year"
+              value={formData.year || ""}
+              onChange={handleChange}
+              placeholder="Ex: 2015"
+              className="w-full border border-purple-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-purple-900 mb-1">Note BGG (/10)</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="10"
+              name="averageRating"
+              value={formData.bggStats?.averageRating || ""}
+              onChange={(e) => handleNestedChange(e, 'bggStats')}
+              className="w-full border border-purple-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-purple-900 mb-1">Complexité (/5)</label>
+            <input
+              type="number"
+              step="0.1"
+              min="0"
+              max="5"
+              name="weight"
+              value={formData.bggStats?.weight || ""}
+              onChange={(e) => handleNestedChange(e, 'bggStats')}
+              className="w-full border border-purple-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+        </div>
+        
         {/* --- SECTION 3 : Textes de présentation --- */}
         <div className="space-y-4">
           <div>
