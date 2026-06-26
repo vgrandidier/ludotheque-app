@@ -55,6 +55,14 @@ export default async function GameDetailsPage({ params }) {
     return <div className="flex justify-end mt-1">{stars}</div>; // Alignement à droite
   };
 
+  // Fonction pour déterminer la couleur de la note BGG
+  const getRatingColor = (rating) => {
+    if (!rating || rating === 0) return "text-gray-400"; // Pas de note
+    if (rating >= 8) return "text-green-400";
+    if (rating >= 6) return "text-amber-400";
+    return "text-red-400";
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       
@@ -239,9 +247,9 @@ export default async function GameDetailsPage({ params }) {
                 {/* Ligne 2 : Note BGG */}
                 <div className="flex justify-between items-center pb-4 border-b border-white/5">
                   <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">Note BGG</span>
-                  <div className="text-2xl font-black text-amber-400 flex items-baseline gap-1">
+                  <div className={`text-2xl font-black flex items-baseline gap-1 ${getRatingColor(game.bggStats?.averageRating)}`}>
                     {game.bggStats?.averageRating > 0 ? game.bggStats.averageRating.toFixed(1) : "-"}
-                    <span className="text-sm font-medium text-amber-400/50">/ 10</span>
+                    <span className="text-sm font-medium opacity-50">/ 10</span>
                   </div>
                 </div>
                 
