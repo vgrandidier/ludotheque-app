@@ -446,12 +446,10 @@ export default async function GameDetailsPage({ params }) {
             </div>
           )}
 
-        </div>
-      </div>
-      {/* Section : Univers du jeu (Jeu de base & Extensions) */}
+          {/* Section : Univers du jeu (Jeu de base & Extensions) */}
         {/* Condition : affiché uniquement s'il y a un lien de parenté */}
         {(game.baseGame || (game.extensions && game.extensions.length > 0)) && (
-         <div className="mt-12 pt-8 p-4 rounded-lg " >
+         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200" >
             <h3 className="text-xl font-bold text-gray-900 mb-6">Dans le même univers</h3>
 
             <div className="flex flex-wrap gap-6">
@@ -499,6 +497,9 @@ export default async function GameDetailsPage({ params }) {
             </div>
           </div>
         )}
+
+        </div>
+      </div>
 
     </div>
   );

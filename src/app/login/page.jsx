@@ -26,8 +26,9 @@ export default function LoginPage() {
       setIsLoading(false);
     } else {
       // Si c'est bon, on redirige vers le tableau de bord d'édition
-      router.push("/edit");
-      router.refresh();
+// 🚀 LE REMÈDE MIRACLE : On force le navigateur à faire un vrai saut
+      // Cela garantit que le nouveau cookie NextAuth est bien envoyé au serveur
+      window.location.href = "/edit";
     }
   };
 
