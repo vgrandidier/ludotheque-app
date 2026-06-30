@@ -94,16 +94,32 @@ export default async function HomePage({ searchParams }) {
               className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden flex flex-col ..."
             >
               
-              {/* Image de la boîte */}
-              {/* Image de la boîte avec ses indicateurs (BGA & Extension) */}
+{/* Image de la boîte avec ses indicateurs (Récompenses, Extension & BGA) */}
               {game.boxImage && (
                 <div className="relative bg-white h-56 flex items-center justify-center p-4 border-b border-b-gray-100">
                   <img src={game.boxImage} alt={game.title} className="max-h-full max-w-full object-contain rounded" />
                   
-                  {/* Indicateur Extension (En haut à gauche) */}
+                  {/* --- NOUVEAU : Indicateurs Récompenses (En haut à gauche) --- */}
+                  <div className="absolute top-2 left-2 flex flex-col gap-1.5 items-start z-10">
+                    {/* Étiquette As d'Or */}
+                    {game.asDor?.status && game.asDor.status !== "aucun" && (
+                      <span className="bg-yellow-50 text-yellow-700 border border-yellow-400 font-bold text-xs px-2 py-0.5 rounded-full shadow-sm">
+                        As d'Or
+                      </span>
+                    )}
+
+                    {/* Étiquette Spiel */}
+                    {game.spielDesJahres?.status && game.spielDesJahres.status !== "aucun" && (
+                      <span className="bg-yellow-50 text-yellow-700 border border-yellow-400 font-bold text-xs px-2 py-0.5 rounded-full shadow-sm">
+                        Spiel
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Indicateur Extension (En bas à gauche) */}
                   {game.isExtension && (
                     <div 
-                      className="absolute bottom-3 left-3 w-8 h-8 bg-white text-cyan-600 overflow-hidden flex items-center justify-center  select-none"
+                      className="absolute bottom-3 left-3 w-8 h-8 bg-white text-cyan-600 overflow-hidden flex items-center justify-center  select-none shadow-sm rounded"
                       title="Ceci est une extension"
                     >
                       <span className="material-icons text-[18px]">extension</span>
@@ -141,16 +157,7 @@ export default async function HomePage({ searchParams }) {
                       {game.label}
                     </span>
                   )}
-                  {game.asDor?.status && game.asDor.status !== 'aucun' && (
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-sm border border-yellow-500 text-yellow-700 bg-yellow-50 flex items-center gap-0.5">
-                      As d'Or
-                    </span>
-                  )}
-                  {game.spielDesJahres?.status && game.spielDesJahres.status !== 'aucun' && (
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-sm border border-yellow-500 text-yellow-700 bg-yellow-50 flex items-center gap-0.5">
-                      Spiel des Jahres
-                    </span>
-                  )}
+                  
                 </div>
 
                 <h2 className="text-xl font-bold mb-4 text-gray-800 line-clamp-1">{game.title}</h2>
