@@ -57,6 +57,11 @@ export default async function HomePage({ searchParams }) {
     }
   }
 
+  // --- CALCUL DES STATISTIQUES ---
+  const ludoCount = filteredGames.filter(g => g.label === "Dans ma ludothèque").length;
+  const heartCount = filteredGames.filter(g => g.label === "Coup de coeur").length;
+  const wishCount = filteredGames.filter(g => g.label === "Wishlist").length;
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       
@@ -73,6 +78,44 @@ export default async function HomePage({ searchParams }) {
         >
           Ajouter un jeu
         </Link>
+      </div>
+
+      {/* === BANDEAU DE STATISTIQUES (Version Compacte) === */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        
+        {/* Carte 1 : Ludothèque (#BE95C4) */}
+        <div className="bg-[#BE95C4]/10 border border-[#BE95C4]/30 rounded-lg py-2.5 px-4 flex items-center justify-between shadow-sm">
+          <div>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Ludothèque</p>
+            <p className="text-xl font-black text-gray-800 leading-none">{ludoCount}</p>
+          </div>
+          <div className="h-9 w-9 bg-[#BE95C4]/20 rounded-full flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[#BE95C4] text-[20px]">inventory_2</span>
+          </div>
+        </div>
+
+        {/* Carte 2 : Coups de cœur (#FB862C) */}
+        <div className="bg-[#FB862C]/10 border border-[#FB862C]/30 rounded-lg py-2.5 px-4 flex items-center justify-between shadow-sm">
+          <div>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Coups de cœur</p>
+            <p className="text-xl font-black text-gray-800 leading-none">{heartCount}</p>
+          </div>
+          <div className="h-9 w-9 bg-[#FB862C]/20 rounded-full flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[#FB862C] text-[20px]">favorite</span>
+          </div>
+        </div>
+
+        {/* Carte 3 : Wishlist (#8ECAE6) */}
+        <div className="bg-[#8ECAE6]/10 border border-[#8ECAE6]/30 rounded-lg py-2.5 px-4 flex items-center justify-between shadow-sm">
+          <div>
+            <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-0.5">Wishlist</p>
+            <p className="text-xl font-black text-gray-800 leading-none">{wishCount}</p>
+          </div>
+          <div className="h-9 w-9 bg-[#8ECAE6]/20 rounded-full flex items-center justify-center shrink-0">
+            <span className="material-symbols-outlined text-[#8ECAE6] text-[20px]">star</span>
+          </div>
+        </div>
+
       </div>
 
       {/* Insertion de notre nouvelle barre de filtres */}
