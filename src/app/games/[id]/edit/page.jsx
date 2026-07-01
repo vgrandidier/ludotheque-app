@@ -14,6 +14,8 @@ export default function EditGamePage() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const boxImageRef = useRef(null);
+  const boardImageRef = useRef(null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -113,23 +115,47 @@ export default function EditGamePage() {
     }));
   };
 
-  const handleImageUpload = async (e, imageField) => {
+    // 6. Logique d'upload d'image vers Cloudinary
+  const handleImageUpload = async (e, fieldName) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", "ludotheque_preset");
+    setError(""); // On nettoie les anciens messages d'erreur
 
     try {
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        { method: "POST", body: data }
+      const sigRes = await fetch("/api/upload/signature");
+      if (!sigRes.ok) throw new Error("Impossible de joindre le serveur de signature.");
+      
+      const { signature, timestamp, folder } = await sigRes.json();
+
+      const cloudData = new FormData();
+      cloudData.append("file", file);
+      cloudData.append("signature", signature);
+      cloudData.append("timestamp", timestamp);
+      cloudData.append("folder", folder);
+      cloudData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY); 
+
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      const uploadRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        { method: "POST", body: cloudData }
       );
-      const uploadedImage = await res.json();
-      setFormData((prev) => ({ ...prev, [imageField]: uploadedImage.secure_url }));
+      
+      const uploadData = await uploadRes.json();
+
+      // 🔴 NOUVELLE SÉCURITÉ : On vérifie si Cloudinary a refusé le fichier
+      if (!uploadRes.ok) {
+        console.error("Détail du refus Cloudinary :", uploadData);
+        throw new Error(uploadData.error?.message || "Refus de Cloudinary");
+      }
+
+      // Si tout va bien, on stocke l'URL et l'aperçu apparaît !
+      setFormData((prev) => ({ ...prev, [fieldName]: uploadData.secure_url }));
+      
     } catch (err) {
-      alert("Erreur lors de l'upload de l'image");
+      console.error("Erreur d'upload interceptée :", err);
+      // On affiche l'erreur en rouge tout en bas du formulaire
+      setError(`Échec de l'envoi de l'image : ${err.message}`);
     }
   };
 
@@ -403,13 +429,13 @@ export default function EditGamePage() {
 
             <div className="p-4 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
               <label className="block text-sm font-medium text-gray-700 mb-2">Image de la boîte</label>
-              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, "boxImage")} className="w-full text-sm text-gray-500 mb-2 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700" />
+              <input type="file" accept="image/*" onChange={(e) => { if(boxImageRef.current) boxImageRef.current.setCustomValidity("");   handleImageUpload(e, "boxImage"); }} className="w-full text-sm text-gray-500 mb-2 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700" />
               {formData.boxImage && <img src={formData.boxImage} alt="Boîte" className="h-32 object-contain rounded" />}
             </div>
 
             <div className="p-4 border-2 border-dashed border-gray-300 rounded-md bg-gray-50">
               <label className="block text-sm font-medium text-gray-700 mb-2">Image du Plateau</label>
-              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, "boardImage")} className="w-full text-sm text-gray-500 mb-2 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700" />
+              <input type="file" accept="image/*" onChange={(e) => { if(boardImageRef.current) boardImageRef.current.setCustomValidity(""); handleImageUpload(e, "boardImage"); }} className="w-full text-sm text-gray-500 mb-2 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700" />
               {formData.boardImage && <img src={formData.boardImage} alt="Plateau" className="h-32 object-contain rounded" />}
             </div>
           </div>
