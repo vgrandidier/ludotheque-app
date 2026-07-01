@@ -3,7 +3,6 @@ import { PlusCircle, Trash2 } from "lucide-react";
 export default function SellerManager({ sellers, onChange }) {
   
   // 1. Calcul du meilleur prix en temps réel
-  // On récupère tous les prix, on filtre ceux à 0 (vendeurs vides), et on prend le minimum
   const validPrices = sellers.map(s => Number(s.price)).filter(p => p > 0);
   const lowestPrice = validPrices.length > 0 ? Math.min(...validPrices) : null;
 
@@ -11,8 +10,8 @@ export default function SellerManager({ sellers, onChange }) {
   const handleAddSeller = () => {
     onChange([
       ...sellers,
-      // Ajout d'un "id" temporaire pour aider React à suivre l'élément s'il change de place
-      { id: Date.now().toString(), name: "", price: 0, url: "", type: "spécialiste" }
+      // NOUVEAU : On initialise isPromo à false par défaut
+      { id: Date.now().toString(), name: "", price: 0, url: "", type: "spécialiste", isPromo: false }
     ]);
   };
 
@@ -29,7 +28,7 @@ export default function SellerManager({ sellers, onChange }) {
     if (field === "price") {
       updatedSellers[index][field] = parseFloat(value) || 0;
     } else {
-      updatedSellers[index][field] = value;
+      updatedSellers[index][field] = value; // Gère aussi bien le texte que le booléen (true/false) de la case à cocher
     }
     
     onChange(updatedSellers);
@@ -54,19 +53,17 @@ export default function SellerManager({ sellers, onChange }) {
 
       {/* Boucle d'affichage pour chaque vendeur */}
       {sellers.map((seller, index) => {
-        // 2. On vérifie si ce vendeur précis possède actuellement le meilleur prix
         const isBestPrice = seller.price > 0 && Number(seller.price) === lowestPrice;
 
         return (
           <div 
-            // 3. On utilise l'_id de la BDD, ou l'id temporaire, pour que React ne perde pas le focus
             key={seller._id || seller.id || index} 
-            // 4. Application dynamique du fond vert si c'est le meilleur prix
             className={`grid grid-cols-12 gap-3 items-end p-3 border rounded-md shadow-sm transition-colors duration-300 ${
               isBestPrice ? "bg-green-50 border-green-400" : "bg-white border-gray-200"
             }`}
           >
             
+            {/* Colonne NOM */}
             <div className="col-span-12 md:col-span-3">
               <label className={`block text-xs font-medium mb-1 ${isBestPrice ? "text-green-700 font-bold" : "text-gray-600"}`}>
                 Nom (ex: Philibert)
@@ -80,21 +77,42 @@ export default function SellerManager({ sellers, onChange }) {
               />
             </div>
 
+{/* Colonne PRIX + PROMO */}
             <div className="col-span-12 md:col-span-2">
-              <label className={`block text-xs font-medium mb-1 flex items-center gap-1 ${isBestPrice ? "text-green-700 font-bold" : "text-gray-600"}`}>
-                Prix (€) {isBestPrice && "🏆"}
-              </label>
+              {/* Flex-between permet d'avoir le label à gauche et la case à cocher à droite */}
+              <div className="flex justify-between items-center mb-1">
+                <label className={`block text-xs font-medium flex items-center gap-1 ${isBestPrice ? "text-green-700 font-bold" : "text-gray-600"}`}>
+                  Prix (€) {isBestPrice && "🏆"}
+                </label>
+                
+                {/* NOUVEAU : La case à cocher Promo */}
+                <label className="flex items-center gap-1 cursor-pointer group" title="Marquer comme promotion">
+                  <input
+                    type="checkbox"
+                    checked={seller.isPromo || false}
+                    // e.target.checked renvoie true ou false
+                    onChange={(e) => handleFieldChange(index, "isPromo", e.target.checked)}
+                    className="w-3.5 h-3.5 text-orange-500 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
+                  />
+                  {/* MODIFICATION ICI : on utilise material-symbols-outlined */}
+                  <span className={`material-symbols-outlined text-[14px] transition-colors ${seller.isPromo ? "text-orange-500" : "text-gray-300 group-hover:text-orange-300"}`}>
+                    percent_discount
+                  </span>                
+                </label>
+              </div>
+              
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 value={seller.price}
                 onChange={(e) => handleFieldChange(index, "price", e.target.value)}
-                className={`w-full border rounded-md p-2 text-sm focus:ring-blue-500 ${isBestPrice ? "border-green-400 bg-white" : "border-gray-300"}`}
+                className={`w-full border rounded-md p-2 text-sm focus:ring-blue-500 ${isBestPrice ? "border-green-400 bg-white" : "border-gray-300"} ${seller.isPromo ? "text-orange-600 font-bold" : ""}`}
                 required
               />
             </div>
 
+            {/* Colonne URL */}
             <div className="col-span-12 md:col-span-4">
               <label className={`block text-xs font-medium mb-1 ${isBestPrice ? "text-green-700 font-bold" : "text-gray-600"}`}>
                 URL de la fiche
@@ -108,6 +126,7 @@ export default function SellerManager({ sellers, onChange }) {
               />
             </div>
 
+            {/* Colonne TYPE */}
             <div className="col-span-12 md:col-span-2">
               <label className={`block text-xs font-medium mb-1 ${isBestPrice ? "text-green-700 font-bold" : "text-gray-600"}`}>
                 Type
@@ -122,6 +141,7 @@ export default function SellerManager({ sellers, onChange }) {
               </select>
             </div>
 
+            {/* Colonne BOUTON SUPPRIMER */}
             <div className="col-span-12 md:col-span-1 flex justify-center pb-1">
               <button
                 type="button"

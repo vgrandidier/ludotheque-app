@@ -5,6 +5,7 @@ const SellerSchema = new mongoose.Schema({
   name: { type: String, required: true },
   price: { type: Number, required: true },
   url: { type: String, required: true },
+  isPromo: { type: Boolean, default: false },
   type: { 
     type: String, 
     enum: ['spécialiste', 'marketplace'], 
@@ -36,6 +37,7 @@ const GameSchema = new mongoose.Schema({
   
   duration: { type: Number, required: true },            // Champ 9 (en minutes)
   lowestPrice: { type: Number, default: 0 },             // Champ 10 (Calculé automatiquement)
+  hasPromo: { type: Boolean, default: false },
   usedPriceMin: { type: Number }, // Prix minimum en occasion
   usedPriceMax: { type: Number }, // Prix maximum en occasion
   sellers: [SellerSchema],                               // Champ 11

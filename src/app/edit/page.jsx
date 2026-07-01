@@ -150,15 +150,26 @@ export default function NewGamePage() {
       boardImageRef.current.setCustomValidity("");
     }
     try {
-      const validPrices = formData.sellers && formData.sellers.length > 0 
-        ? formData.sellers.map(s => Number(s.price)).filter(p => p > 0) 
-        : [];
-      
-      const calculatedLowestPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+      // 1. Calcul du meilleur prix ET de l'état promo
+      const validSellers = formData.sellers?.filter(s => Number(s.price) > 0) || [];
+      let calculatedLowestPrice = 0;
+      let isLowestPricePromo = false;
 
+      if (validSellers.length > 0) {
+        // On trouve le vendeur le moins cher
+        const lowestSeller = validSellers.reduce((min, current) => 
+          Number(current.price) < Number(min.price) ? current : min
+        );
+        
+        calculatedLowestPrice = Number(lowestSeller.price);
+        isLowestPricePromo = lowestSeller.isPromo || false;
+      }
+
+      // 2. On prépare le colis
       const dataToSend = {
         ...formData,
-        lowestPrice: calculatedLowestPrice
+        lowestPrice: calculatedLowestPrice,
+        hasPromo: isLowestPricePromo // 🔴 NOUVEAU : On enregistre si c'est une promo
       };
 
       // 🧹 3. NETTOYAGE FANTÔME : On casse le lien si la case est décochée

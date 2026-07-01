@@ -164,24 +164,41 @@ export default async function HomePage({ searchParams }) {
 
                 {/* Ligne des Caractéristiques avec Material Icons */}
                 <div className="flex justify-between items-center text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100 text-center ">
+                  
+                  {/* Âge */}
                   <div className="flex flex-col items-center">
                     <span className="material-icons text-[#679BBC] mb-1">face</span>
                     <span><span className="font-semibold text-gray-800">{game.minAge}</span>+</span>
                   </div>
+                  
+                  {/* Joueurs */}
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
                     <span className="material-icons text-[#679BBC] mb-1">group</span>
                     <span><span className="font-semibold text-gray-800">{game.players?.min === game.players?.max 
     ? `${game.players?.min}` 
     : `${game.players?.min} - ${game.players?.max}`}</span></span>
                   </div>
+                  
+                  {/* Durée */}
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
                     <span className="material-icons text-[#679BBC] mb-1">schedule</span>
                     <span><span className="font-semibold text-gray-800">{game.duration}</span> mn</span>
                   </div>
+                  
+                  {/* Prix (Corrigé) */}
                   <div className="border-l border-gray-200 pl-4 flex flex-col items-center">
                     <span className="material-icons text-[#679BBC] mb-1">sell</span>
-                    <span><span className="font-semibold text-gray-800">{game.lowestPrice > 0 ? game.lowestPrice : '--'}</span> €</span>
+                    {/* Ajout de flex et gap-0.5 pour que l'icône soit parfaitement alignée avec le prix */}
+                    <span className="font-semibold text-gray-800 flex items-center justify-center gap-0.5">
+                      {game.lowestPrice > 0 ? `${game.lowestPrice} €` : "-"}
+                      {game.hasPromo && (
+                        <span className="material-symbols-outlined text-orange-500 text-[18px]" title="En promotion !">
+                          percent_discount
+                        </span>
+                      )}
+                    </span>
                   </div>
+                  
                 </div>
 
                 {/* Paragraphe de présentation tronqué */}

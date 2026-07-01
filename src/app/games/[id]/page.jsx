@@ -142,13 +142,20 @@ export default async function GameDetailsPage({ params }) {
               </div>
             )}
 
-            {/* Bloc Neuf (Ton bloc existant retravaillé pour s'aligner) */}
+           {/* Bloc Neuf (Ton bloc existant retravaillé pour s'aligner) */}
             <div className="bg-green-50 px-4 py-3 rounded-lg border border-green-200 text-center shadow-sm min-w-[120px]">
               <p className="text-xs text-green-600 font-bold uppercase tracking-wider mb-1 flex items-center justify-center gap-1">
                 <span className="material-icons text-[14px]">storefront</span> Meilleur prix
               </p>
-              <p className="text-xl font-bold text-green-800">
+              
+              {/* MODIFICATION ICI : Ajout de flex, justify-center et de l'icône promo */}
+              <p className="text-xl font-bold text-green-800 flex items-center justify-center gap-1">
                 {game.lowestPrice > 0 ? `${game.lowestPrice} €` : '-- €'}
+                {game.hasPromo && (
+                  <span className="material-symbols-outlined text-orange-500 text-[20px]" title="En promotion !">
+                    percent_discount
+                  </span>
+                )}
               </p>
             </div>
             
